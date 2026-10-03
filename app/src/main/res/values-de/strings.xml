@@ -108,6 +108,9 @@
     <string name="menu_notification">Benachrichtigung</string>
     <string name="menu_quick_settings">Kontrollzentrum</string>
     <string name="menu_power_dialog">Ein-/Aus-Menü</string>
+    <string name="menu_switch_last_app">Zur letzten App wechseln</string>
+    <string name="menu_send_clipboard_localsend">Zwischenablage an LocalSend senden</string>
+    <string name="toast_no_previous_app">Keine vorherige App vorhanden</string>
 
     <!-- Color Picker -->
     <string name="choose_color">Farbe wählen</string>

@@ -108,6 +108,9 @@
     <string name="menu_notification">Notification</string>
     <string name="menu_quick_settings">Control Center</string>
     <string name="menu_power_dialog">Power Menu</string>
+    <string name="menu_switch_last_app">Switch to Last App</string>
+    <string name="menu_send_clipboard_localsend">Send Clipboard to LocalSend</string>
+    <string name="toast_no_previous_app">No previous app to switch to</string>
 
     <!-- Color Picker -->
     <string name="choose_color">Choose Color</string>

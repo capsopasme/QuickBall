@@ -108,6 +108,9 @@
     <string name="menu_notification">通知</string>
     <string name="menu_quick_settings">控制中心</string>
     <string name="menu_power_dialog">电源菜单</string>
+    <string name="menu_switch_last_app">切回上个应用</string>
+    <string name="menu_send_clipboard_localsend">剪贴板发送到 LocalSend</string>
+    <string name="toast_no_previous_app">没有可切换的上个应用</string>
 
     <!-- Color Picker -->
     <string name="choose_color">选择颜色</string>

@@ -8,6 +8,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.chayanforyou.quickball.domain.models.MenuAction
 import io.github.chayanforyou.quickball.domain.models.QuickBallMenuItem
+import io.github.chayanforyou.quickball.localsend.LocalSendTarget
 
 class AppPreference private constructor(context: Context) {
     private val prefs: SharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -49,6 +50,12 @@ class AppPreference private constructor(context: Context) {
         private const val KEY_ONBOARDING_COMPLETED = "onboarding_completed"
         private const val KEY_HAPTIC_FEEDBACK_ENABLED = "haptic_feedback_enabled"
         private const val KEY_HAPTIC_INTENSITY = "haptic_intensity"
+        private const val KEY_LOCALSEND_HOST = "localsend_host"
+        private const val KEY_LOCALSEND_PORT = "localsend_port"
+        private const val KEY_LOCALSEND_HTTPS = "localsend_https"
+        private const val KEY_LOCALSEND_FINGERPRINT = "localsend_fingerprint"
+        private const val KEY_LOCALSEND_PIN = "localsend_pin"
+        private const val KEY_LOCALSEND_ALIAS = "localsend_alias"
 
         private val gson = Gson()
         private val menuItemListType = object : TypeToken<List<QuickBallMenuItem>>() {}.type
@@ -158,6 +165,24 @@ class AppPreference private constructor(context: Context) {
     var hapticIntensity: String
         get() = prefs.getString(KEY_HAPTIC_INTENSITY, AppDefaults.HAPTIC_INTENSITY) ?: AppDefaults.HAPTIC_INTENSITY
         set(value) = prefs.edit { putString(KEY_HAPTIC_INTENSITY, value) }
+
+    var localSendTarget: LocalSendTarget
+        get() = LocalSendTarget(
+            host = prefs.getString(KEY_LOCALSEND_HOST, "") ?: "",
+            port = prefs.getInt(KEY_LOCALSEND_PORT, LocalSendTarget.DEFAULT_PORT),
+            https = prefs.getBoolean(KEY_LOCALSEND_HTTPS, true),
+            fingerprint = prefs.getString(KEY_LOCALSEND_FINGERPRINT, "") ?: "",
+            pin = prefs.getString(KEY_LOCALSEND_PIN, "") ?: "",
+            alias = prefs.getString(KEY_LOCALSEND_ALIAS, "") ?: ""
+        )
+        set(value) = prefs.edit {
+            putString(KEY_LOCALSEND_HOST, value.host.trim())
+            putInt(KEY_LOCALSEND_PORT, value.port)
+            putBoolean(KEY_LOCALSEND_HTTPS, value.https)
+            putString(KEY_LOCALSEND_FINGERPRINT, value.fingerprint.trim())
+            putString(KEY_LOCALSEND_PIN, value.pin)
+            putString(KEY_LOCALSEND_ALIAS, value.alias.trim())
+        }
 
     var isStickToEdgeEnabled: Boolean
         get() = prefs.getBoolean(KEY_STICK_TO_EDGE, true)

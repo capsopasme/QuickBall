@@ -16,14 +16,19 @@ import android.provider.Settings
 import android.util.Log
 import android.view.KeyEvent
 import androidx.core.net.toUri
+import io.github.chayanforyou.quickball.core.RecentAppTracker
 import io.github.chayanforyou.quickball.domain.models.MenuAction
 import io.github.chayanforyou.quickball.domain.models.QuickBallMenuItem
+import io.github.chayanforyou.quickball.R
+import io.github.chayanforyou.quickball.localsend.ClipboardSendActivity
+import io.github.chayanforyou.quickball.localsend.LocalSendSender
 import io.github.chayanforyou.quickball.utils.BrightnessUtils
 import io.github.chayanforyou.quickball.utils.ToastUtil
 import io.github.chayanforyou.quickball.utils.performHapticFeedback
 
 class QuickBallActionHandler(
     private val accessibilityService: AccessibilityService,
+    private val recentAppTracker: RecentAppTracker? = null,
     private val performStash: (() -> Unit)? = null
 ) {
 
@@ -52,8 +57,11 @@ class QuickBallActionHandler(
         }
     } else null
 
+    private val localSendNotifier: (String) -> Unit = { message -> showToast(message) }
+
     init {
         initTorch()
+        LocalSendSender.notifier = localSendNotifier
     }
 
     private fun initTorch() {
@@ -67,6 +75,7 @@ class QuickBallActionHandler(
     }
 
     fun cleanup() {
+        if (LocalSendSender.notifier === localSendNotifier) LocalSendSender.notifier = null
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && torchCallback != null) {
             try {
                 cameraManager.unregisterTorchCallback(torchCallback)
@@ -148,6 +157,8 @@ class QuickBallActionHandler(
             MenuAction.HOME -> performHomeAction()
             MenuAction.BACK -> performBackAction()
             MenuAction.RECENT -> performMenuAction()
+            MenuAction.SWITCH_LAST_APP -> switchToLastApp()
+            MenuAction.SEND_CLIPBOARD_LOCALSEND -> sendClipboardToLocalSend()
             MenuAction.NOTIFICATION -> performNotificationAction()
             MenuAction.QUICK_SETTINGS -> performQuickSettingsAction()
             MenuAction.POWER_DIALOG -> performPowerDialogAction()
@@ -517,6 +528,54 @@ class QuickBallActionHandler(
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 }
             )
+        }
+    }
+
+    // -------------------- Switch To Last App --------------------
+    /**
+     * Brings the previously used app back to the front. Uses the launcher-style intent
+     * (NEW_TASK | RESET_TASK_IF_NEEDED), which resumes the existing task instead of
+     * starting a fresh one, so repeated use toggles between the last two apps.
+     */
+    private fun switchToLastApp() {
+        val target = recentAppTracker?.previousPackage
+        if (target.isNullOrBlank()) {
+            showToast(context.getString(R.string.toast_no_previous_app))
+            return
+        }
+        try {
+            val intent = accessibilityService.packageManager.getLaunchIntentForPackage(target)
+            if (intent == null) {
+                showToast(context.getString(R.string.toast_no_previous_app))
+                return
+            }
+            intent.addFlags(
+                Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
+            )
+            accessibilityService.startActivity(intent)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to switch to $target", e)
+        }
+    }
+
+    // -------------------- Send Clipboard To LocalSend --------------------
+    /**
+     * Reading the clipboard from the background is blocked since Android 10 unless the caller
+     * owns the focused window, so a transparent activity takes focus for a moment, reads the
+     * primary clip and hands it to [io.github.chayanforyou.quickball.localsend.LocalSendClient].
+     */
+    private fun sendClipboardToLocalSend() {
+        try {
+            accessibilityService.startActivity(
+                Intent(context, ClipboardSendActivity::class.java).addFlags(
+                    Intent.FLAG_ACTIVITY_NEW_TASK or
+                            Intent.FLAG_ACTIVITY_NO_ANIMATION or
+                            Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS or
+                            Intent.FLAG_ACTIVITY_MULTIPLE_TASK
+                )
+            )
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to start clipboard reader", e)
         }
     }
 

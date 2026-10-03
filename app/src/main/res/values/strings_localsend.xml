@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Strings for sending clipboard text to LocalSend. Only English and Chinese so far. -->
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="localsend_settings_title">LocalSend target</string>
+    <string name="localsend_settings_subtitle">Device that receives \"Send Clipboard to LocalSend\"</string>
+    <string name="localsend_settings_description">Enter the IP address and port shown in LocalSend on the receiving device (Settings → Network). Giving that device a fixed IP in your router keeps this working.</string>
+    <string name="localsend_host_label">IP address</string>
+    <string name="localsend_port_label">Port</string>
+    <string name="localsend_https_title">Encryption (HTTPS)</string>
+    <string name="localsend_https_description">Must match the \"Encryption\" setting in LocalSend on the receiver</string>
+    <string name="localsend_pin_label">PIN (optional)</string>
+    <string name="localsend_alias_label">Name (optional)</string>
+    <string name="localsend_fingerprint_label">Certificate fingerprint</string>
+    <string name="localsend_fingerprint_hint">Filled in by \"Detect\". Leave empty to accept any certificate.</string>
+    <string name="localsend_detect">Detect</string>
+    <string name="localsend_detecting">Connecting…</string>
+    <string name="localsend_detected">Found %1$s. Saved.</string>
+    <string name="localsend_save">Save</string>
+    <string name="localsend_saved">Saved</string>
+    <string name="localsend_test">Send test message</string>
+    <string name="localsend_test_message">Test message from Quick Ball</string>
+    <string name="localsend_test_waiting">Sent. Close the message on the receiver to finish the test.</string>
+    <string name="localsend_test_ok">Test message delivered</string>
+    <string name="localsend_invalid_target">Enter a valid IP address and port</string>
+    <string name="localsend_not_configured">Set up the LocalSend target in Quick Ball first</string>
+    <string name="localsend_clipboard_empty">Clipboard is empty</string>
+    <string name="localsend_sent">Sent to %1$s</string>
+    <string name="localsend_rejected">The receiver declined the message</string>
+    <string name="localsend_pin_required">The receiver requires a PIN</string>
+    <string name="localsend_pin_invalid">Wrong PIN</string>
+    <string name="localsend_pin_blocked">Too many wrong PINs, try again later</string>
+    <string name="localsend_busy">The receiver is busy with another transfer</string>
+    <string name="localsend_fingerprint_mismatch">Certificate changed. Run \"Detect\" again if you trust the device.</string>
+    <string name="localsend_unreachable">Cannot reach %1$s</string>
+    <string name="localsend_http_error">Send failed (HTTP %1$d)</string>
+</resources>

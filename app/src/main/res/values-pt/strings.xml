@@ -108,6 +108,9 @@
     <string name="menu_notification">Notificação</string>
     <string name="menu_quick_settings">Centro de controle</string>
     <string name="menu_power_dialog">Menu de energia</string>
+    <string name="menu_switch_last_app">Alternar para o último app</string>
+    <string name="menu_send_clipboard_localsend">Enviar área de transferência ao LocalSend</string>
+    <string name="toast_no_previous_app">Nenhum app anterior</string>
 
     <!-- Color Picker -->
     <string name="choose_color">Escolher cor</string>

@@ -134,6 +134,7 @@ class QuickBallService : AccessibilityService() {
     private val stashHandler = Handler(Looper.getMainLooper())
     private val stashRunnable = Runnable { onInactivityTimeout() }
     private var lastForegroundPackage = ""
+    private val recentAppTracker by lazy { RecentAppTracker(this) }
 
     // System Services & State
     private val keyguard by lazy { getSystemService<KeyguardManager>() as KeyguardManager }
@@ -191,7 +192,7 @@ class QuickBallService : AccessibilityService() {
             yFraction = prefs.landscapeYFraction
         )
 
-        actionHandler = QuickBallActionHandler(this) {
+        actionHandler = QuickBallActionHandler(this, recentAppTracker) {
             startCollapsingMenu()
             stashFab()
         }
@@ -202,6 +203,8 @@ class QuickBallService : AccessibilityService() {
     /* -------------------- Accessibility & System Events -------------------- */
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
+        recentAppTracker.onAccessibilityEvent(event)
+
         val packageName = event.packageName?.toString() ?: return
 
         if (!shouldHandlePackage(packageName)) {

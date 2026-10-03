@@ -18,6 +18,8 @@ enum class MenuAction(
     BACK(R.drawable.ic_back, R.string.menu_back),
     @SerializedName("RECENT")
     RECENT(R.drawable.ic_recent, R.string.menu_recent),
+    @SerializedName("SWITCH_LAST_APP")
+    SWITCH_LAST_APP(R.drawable.ic_switch_app, R.string.menu_switch_last_app),
 
     // Media & Sound
     @SerializedName("VOLUME_UP")
@@ -70,6 +72,8 @@ enum class MenuAction(
     QUICK_SETTINGS(R.drawable.ic_quick_settings, R.string.menu_quick_settings),
     @SerializedName("POWER_DIALOG")
     POWER_DIALOG(R.drawable.ic_power_menu, R.string.menu_power_dialog),
+    @SerializedName("SEND_CLIPBOARD_LOCALSEND")
+    SEND_CLIPBOARD_LOCALSEND(R.drawable.ic_send_clipboard, R.string.menu_send_clipboard_localsend),
 
     // Apps
     @SerializedName("LAUNCH_APP")

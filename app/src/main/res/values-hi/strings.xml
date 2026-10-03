@@ -108,6 +108,9 @@
     <string name="menu_notification">सूचनाएं</string>
     <string name="menu_quick_settings">कंट्रोल सेंटर</string>
     <string name="menu_power_dialog">पावर मेनू</string>
+    <string name="menu_switch_last_app">पिछले ऐप पर जाएं</string>
+    <string name="menu_send_clipboard_localsend">क्लिपबोर्ड LocalSend पर भेजें</string>
+    <string name="toast_no_previous_app">पिछला कोई ऐप नहीं है</string>
 
     <!-- Color Picker -->
     <string name="choose_color">रंग चुनें</string>
