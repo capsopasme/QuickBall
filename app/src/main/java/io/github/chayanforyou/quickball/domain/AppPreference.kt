@@ -191,6 +191,7 @@ class AppPreference private constructor(context: Context) {
 
     var waveHeight: Float
         get() = prefs.getFloat(KEY_WAVE_HEIGHT, AppDefaults.WAVE_HEIGHT)
+            .coerceIn(AppDefaults.WAVE_HEIGHT_MIN, AppDefaults.WAVE_HEIGHT_MAX)
         set(value) = prefs.edit { putFloat(KEY_WAVE_HEIGHT, value) }
 
     var waveTouchWidth: Float

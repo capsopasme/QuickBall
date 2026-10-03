@@ -217,8 +217,8 @@ fun WaveSettingsScreen(
                     SliderSettingItem(
                         title = stringResource(R.string.wave_height_title),
                         value = height,
-                        valueRange = 60f..240f,
-                        steps = 35,
+                        valueRange = AppDefaults.WAVE_HEIGHT_MIN..AppDefaults.WAVE_HEIGHT_MAX,
+                        steps = 7, // 5 dp increments: 60, 65, … 100
                         onValueChange = { value ->
                             height = value
                             saveAndUpdate { prefs.waveHeight = value }

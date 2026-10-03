@@ -25,6 +25,7 @@ import io.github.chayanforyou.quickball.localsend.LocalSendSender
 import io.github.chayanforyou.quickball.utils.BrightnessUtils
 import io.github.chayanforyou.quickball.utils.ToastUtil
 import io.github.chayanforyou.quickball.utils.performHapticFeedback
+import kotlin.math.roundToInt
 
 class QuickBallActionHandler(
     private val accessibilityService: AccessibilityService,
@@ -35,6 +36,7 @@ class QuickBallActionHandler(
     companion object {
         private const val TAG = "QuickBallActionHandler"
         private const val BRIGHTNESS_STEP_PERCENT = 10
+        private const val VOLUME_STEP_PERCENT = 10
     }
 
     private val context: Context = accessibilityService.applicationContext
@@ -192,29 +194,32 @@ class QuickBallActionHandler(
     }
 
     // -------------------- Volume Actions --------------------
-    private fun performVolumeUpAction() {
-        try {
-            audioManager.adjustStreamVolume(
-                AudioManager.STREAM_MUSIC,
-                AudioManager.ADJUST_RAISE,
-                AudioManager.FLAG_PLAY_SOUND
-            )
-            showVolumeToast()
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to perform volume up action", e)
-        }
-    }
+    private fun performVolumeUpAction() = stepVolume(up = true)
 
-    private fun performVolumeDownAction() {
+    private fun performVolumeDownAction() = stepVolume(up = false)
+
+    /**
+     * Moves media volume to the next 10 % mark of the stream's range. Volume is an integer
+     * index (often 0–15), so the 10 % marks are rounded to indices and the step goes to the
+     * nearest mark strictly above/below the current index, which never stalls.
+     */
+    private fun stepVolume(up: Boolean) {
         try {
-            audioManager.adjustStreamVolume(
-                AudioManager.STREAM_MUSIC,
-                AudioManager.ADJUST_LOWER,
-                AudioManager.FLAG_PLAY_SOUND
-            )
+            val stream = AudioManager.STREAM_MUSIC
+            val max = audioManager.getStreamMaxVolume(stream)
+            val current = audioManager.getStreamVolume(stream)
+            val marks = (0..100 step VOLUME_STEP_PERCENT).map { (it * max / 100.0).roundToInt() }
+            val target = if (up) {
+                marks.firstOrNull { it > current } ?: max
+            } else {
+                marks.lastOrNull { it < current } ?: 0
+            }
+            if (target != current) {
+                audioManager.setStreamVolume(stream, target, AudioManager.FLAG_PLAY_SOUND)
+            }
             showVolumeToast()
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to perform volume down action", e)
+            Log.e(TAG, "Failed to change volume (up=$up)", e)
         }
     }
 
