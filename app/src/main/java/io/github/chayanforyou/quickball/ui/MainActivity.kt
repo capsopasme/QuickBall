@@ -19,6 +19,7 @@ import androidx.navigation.compose.rememberNavController
 import io.github.chayanforyou.quickball.ui.navigation.Screen
 import io.github.chayanforyou.quickball.ui.screens.settings.AdvancedSettingsScreen
 import io.github.chayanforyou.quickball.ui.screens.settings.LocalSendSettingsScreen
+import io.github.chayanforyou.quickball.ui.screens.settings.WaveSettingsScreen
 import io.github.chayanforyou.quickball.ui.screens.autohide.AutoHideSettingsScreen
 import io.github.chayanforyou.quickball.ui.screens.home.HomeScreen
 import io.github.chayanforyou.quickball.ui.screens.onboarding.OnboardingScreen
@@ -77,6 +78,7 @@ class MainActivity : ComponentActivity() {
                             onNavigateToAutoHide = { navController.navigate(Screen.AutoHideSettings.name) },
                             onNavigateToAdvanced = { navController.navigate(Screen.AdvancedSettings.name) },
                             onNavigateToLocalSend = { navController.navigate(Screen.LocalSendSettings.name) },
+                            onNavigateToWave = { navController.navigate(Screen.WaveSettings.name) },
                             modifier = Modifier.fillMaxSize(),
                             viewModel = viewModel
                         )
@@ -131,6 +133,13 @@ class MainActivity : ComponentActivity() {
                             onNavigateBack = { navController.navigateUp() },
                             modifier = Modifier.fillMaxSize(),
                             viewModel = viewModel
+                        )
+                    }
+
+                    composable(Screen.WaveSettings.name) {
+                        WaveSettingsScreen(
+                            onNavigateBack = { navController.navigateUp() },
+                            modifier = Modifier.fillMaxSize()
                         )
                     }
 

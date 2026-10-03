@@ -8,5 +8,6 @@ enum class Screen {
     SelectApps,
     AutoHideSettings,
     AdvancedSettings,
-    LocalSendSettings
+    LocalSendSettings,
+    WaveSettings
 }

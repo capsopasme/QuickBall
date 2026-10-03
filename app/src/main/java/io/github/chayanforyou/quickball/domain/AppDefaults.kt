@@ -25,5 +25,14 @@ object AppDefaults {
     val SWIPE_UP_ACTION = MenuAction.RECENT.name
     val SWIPE_DOWN_ACTION = MenuAction.NOTIFICATION.name
     const val HAPTIC_FEEDBACK_ENABLED = true
+    const val WAVE_ENABLED = false
+    const val WAVE_ON_RIGHT = true
+    const val WAVE_Y_FRACTION = 0.7f
+    const val WAVE_HEIGHT = 120f
+    const val WAVE_TOUCH_WIDTH = 24f
+    const val WAVE_THICKNESS = 3f
+    const val WAVE_COLOR = PILL_COLOR
+    val WAVE_SWIPE_UP_ACTION = MenuAction.SWITCH_LAST_APP.name
+    val WAVE_SWIPE_DOWN_ACTION = MenuAction.NOTIFICATION.name
     val HAPTIC_INTENSITY = HapticIntensity.LIGHT.name
 }

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="wave_settings_title">波浪侧边栏</string>
+    <string name="wave_settings_subtitle">屏幕边缘第二个只支持上下滑的手柄</string>
+    <string name="wave_settings_description">在波浪线上上滑或下滑即可执行动作，识别到滑动立刻触发，无需抬手。点击波浪线不会有反应。与悬浮球在同一侧时，会自动避开悬浮球。</string>
+    <string name="wave_enable_title">显示波浪侧边栏</string>
+    <string name="wave_appearance_header">位置与外观</string>
+    <string name="wave_side_title">所在边缘</string>
+    <string name="wave_side_left">左侧</string>
+    <string name="wave_side_right">右侧</string>
+    <string name="wave_position_title">竖直位置</string>
+    <string name="wave_height_title">长度</string>
+    <string name="wave_touch_width_title">触摸区域宽度</string>
+    <string name="wave_thickness_title">线条粗细</string>
+    <string name="wave_color_title">颜色</string>
+</resources>

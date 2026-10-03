@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Strings for the wave edge bar. Only English and Chinese so far. -->
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="wave_settings_title">Wave edge bar</string>
+    <string name="wave_settings_subtitle">A second, swipe-only handle on the screen edge</string>
+    <string name="wave_settings_description">Swipe up or down on the wave to run an action; it fires as soon as the swipe is recognized. Taps on the wave do nothing. If it shares an edge with the ball, it moves out of the ball\'s way automatically.</string>
+    <string name="wave_enable_title">Show wave edge bar</string>
+    <string name="wave_appearance_header">Position &amp; appearance</string>
+    <string name="wave_side_title">Screen edge</string>
+    <string name="wave_side_left">Left</string>
+    <string name="wave_side_right">Right</string>
+    <string name="wave_position_title">Vertical position</string>
+    <string name="wave_height_title">Length</string>
+    <string name="wave_touch_width_title">Touch area width</string>
+    <string name="wave_thickness_title">Line thickness</string>
+    <string name="wave_color_title">Color</string>
+</resources>

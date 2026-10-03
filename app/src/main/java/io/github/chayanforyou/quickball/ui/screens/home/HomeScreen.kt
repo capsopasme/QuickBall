@@ -72,6 +72,7 @@ fun HomeScreen(
     onNavigateToAutoHide: () -> Unit,
     onNavigateToAdvanced: () -> Unit,
     onNavigateToLocalSend: () -> Unit,
+    onNavigateToWave: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: QuickBallViewModel = viewModel()
 ) {
@@ -327,6 +328,12 @@ fun HomeScreen(
                         title = stringResource(R.string.hide_automatically_title),
                         subtitle = stringResource(R.string.hide_automatically_description),
                         onClick = onNavigateToAutoHide
+                    )
+
+                    SettingNavigationRow(
+                        title = stringResource(R.string.wave_settings_title),
+                        subtitle = stringResource(R.string.wave_settings_subtitle),
+                        onClick = onNavigateToWave
                     )
 
                     SettingNavigationRow(

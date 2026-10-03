@@ -50,6 +50,15 @@ class AppPreference private constructor(context: Context) {
         private const val KEY_ONBOARDING_COMPLETED = "onboarding_completed"
         private const val KEY_HAPTIC_FEEDBACK_ENABLED = "haptic_feedback_enabled"
         private const val KEY_HAPTIC_INTENSITY = "haptic_intensity"
+        private const val KEY_WAVE_ENABLED = "wave_enabled"
+        private const val KEY_WAVE_ON_RIGHT = "wave_on_right"
+        private const val KEY_WAVE_Y_FRACTION = "wave_y_fraction"
+        private const val KEY_WAVE_HEIGHT = "wave_height"
+        private const val KEY_WAVE_TOUCH_WIDTH = "wave_touch_width"
+        private const val KEY_WAVE_THICKNESS = "wave_thickness"
+        private const val KEY_WAVE_COLOR = "wave_color"
+        private const val KEY_WAVE_SWIPE_UP = "wave_swipe_up"
+        private const val KEY_WAVE_SWIPE_DOWN = "wave_swipe_down"
         private const val KEY_LOCALSEND_HOST = "localsend_host"
         private const val KEY_LOCALSEND_PORT = "localsend_port"
         private const val KEY_LOCALSEND_HTTPS = "localsend_https"
@@ -165,6 +174,44 @@ class AppPreference private constructor(context: Context) {
     var hapticIntensity: String
         get() = prefs.getString(KEY_HAPTIC_INTENSITY, AppDefaults.HAPTIC_INTENSITY) ?: AppDefaults.HAPTIC_INTENSITY
         set(value) = prefs.edit { putString(KEY_HAPTIC_INTENSITY, value) }
+
+    // -------------------- Wave edge bar --------------------
+    var isWaveEnabled: Boolean
+        get() = prefs.getBoolean(KEY_WAVE_ENABLED, AppDefaults.WAVE_ENABLED)
+        set(value) = prefs.edit { putBoolean(KEY_WAVE_ENABLED, value) }
+
+    var waveOnRight: Boolean
+        get() = prefs.getBoolean(KEY_WAVE_ON_RIGHT, AppDefaults.WAVE_ON_RIGHT)
+        set(value) = prefs.edit { putBoolean(KEY_WAVE_ON_RIGHT, value) }
+
+    /** Vertical centre of the bar as a fraction of the screen height. */
+    var waveYFraction: Float
+        get() = prefs.getFloat(KEY_WAVE_Y_FRACTION, AppDefaults.WAVE_Y_FRACTION)
+        set(value) = prefs.edit { putFloat(KEY_WAVE_Y_FRACTION, value) }
+
+    var waveHeight: Float
+        get() = prefs.getFloat(KEY_WAVE_HEIGHT, AppDefaults.WAVE_HEIGHT)
+        set(value) = prefs.edit { putFloat(KEY_WAVE_HEIGHT, value) }
+
+    var waveTouchWidth: Float
+        get() = prefs.getFloat(KEY_WAVE_TOUCH_WIDTH, AppDefaults.WAVE_TOUCH_WIDTH)
+        set(value) = prefs.edit { putFloat(KEY_WAVE_TOUCH_WIDTH, value) }
+
+    var waveThickness: Float
+        get() = prefs.getFloat(KEY_WAVE_THICKNESS, AppDefaults.WAVE_THICKNESS)
+        set(value) = prefs.edit { putFloat(KEY_WAVE_THICKNESS, value) }
+
+    var waveColor: Int
+        get() = prefs.getInt(KEY_WAVE_COLOR, AppDefaults.WAVE_COLOR)
+        set(value) = prefs.edit { putInt(KEY_WAVE_COLOR, value) }
+
+    var waveSwipeUpAction: String
+        get() = prefs.getString(KEY_WAVE_SWIPE_UP, AppDefaults.WAVE_SWIPE_UP_ACTION) ?: AppDefaults.WAVE_SWIPE_UP_ACTION
+        set(value) = prefs.edit { putString(KEY_WAVE_SWIPE_UP, value) }
+
+    var waveSwipeDownAction: String
+        get() = prefs.getString(KEY_WAVE_SWIPE_DOWN, AppDefaults.WAVE_SWIPE_DOWN_ACTION) ?: AppDefaults.WAVE_SWIPE_DOWN_ACTION
+        set(value) = prefs.edit { putString(KEY_WAVE_SWIPE_DOWN, value) }
 
     var localSendTarget: LocalSendTarget
         get() = LocalSendTarget(
