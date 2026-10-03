@@ -79,7 +79,6 @@ fun AdvancedSettingsScreen(
     val pillTouchWidth = uiState.pillTouchWidth
     val isGestureEnabled = uiState.isGestureEnabled
     val doubleTapAction = uiState.doubleTapAction
-    val tripleTapAction = uiState.tripleTapAction
     val longPressAction = uiState.longPressAction
     val swipeUpAction = uiState.swipeUpAction
     val swipeDownAction = uiState.swipeDownAction
@@ -441,14 +440,6 @@ fun AdvancedSettingsScreen(
                         onClick = { activeGestureBottomSheet = PillGesture.DOUBLE_TAP }
                     )
 
-                    // Triple tap
-                    GestureSettingRow(
-                        title = stringResource(R.string.triple_tap_title),
-                        actionName = tripleTapAction,
-                        enabled = isGestureEnabled,
-                        onClick = { activeGestureBottomSheet = PillGesture.TRIPLE_TAP }
-                    )
-
                     // Long press
                     GestureSettingRow(
                         title = stringResource(R.string.long_press_title),
@@ -618,13 +609,6 @@ fun AdvancedSettingsScreen(
                 doubleTapAction
             ) { action: MenuAction ->
                 viewModel.setDoubleTapAction(action.name)
-            }
-
-            PillGesture.TRIPLE_TAP -> Triple(
-                stringResource(gesture.titleRes),
-                tripleTapAction
-            ) { action: MenuAction ->
-                viewModel.setTripleTapAction(action.name)
             }
 
             PillGesture.LONG_PRESS -> Triple(

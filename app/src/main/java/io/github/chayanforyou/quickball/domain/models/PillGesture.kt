@@ -9,8 +9,6 @@ import io.github.chayanforyou.quickball.R
 enum class PillGesture(@field:StringRes val titleRes: Int) {
     @SerializedName("DOUBLE_TAP")
     DOUBLE_TAP(R.string.double_tap_title),
-    @SerializedName("TRIPLE_TAP")
-    TRIPLE_TAP(R.string.triple_tap_title),
     @SerializedName("LONG_PRESS")
     LONG_PRESS(R.string.long_press_title),
     @SerializedName("SWIPE_UP")

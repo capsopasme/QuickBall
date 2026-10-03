@@ -21,7 +21,6 @@ object AppDefaults {
     const val PILL_ARC_ANGLE = 40f
     const val GESTURE_ENABLED = false
     val DOUBLE_TAP_ACTION = MenuAction.LOCK_SCREEN.name
-    val TRIPLE_TAP_ACTION = MenuAction.SCREENSHOT.name
     val LONG_PRESS_ACTION = MenuAction.POWER_DIALOG.name
     val SWIPE_UP_ACTION = MenuAction.RECENT.name
     val SWIPE_DOWN_ACTION = MenuAction.NOTIFICATION.name

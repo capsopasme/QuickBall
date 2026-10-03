@@ -16,7 +16,6 @@ interface GestureListener {
     fun onTouchCancel() {}
     fun onSingleTap() {}
     fun onDoubleTap() {}
-    fun onTripleTap() {}
     fun onLongPress() {}
     fun onSwipeUp() {}
     fun onSwipeDown() {}
@@ -27,7 +26,10 @@ interface GestureListener {
 /**
  * Reusable gesture detector for floating overlay views (e.g. Floating Button and Pill View).
  *
- * Recognizes single tap, double tap, triple tap, long press, and vertical swipe gestures.
+ * Recognizes single tap, double tap, long press, and vertical swipe gestures.
+ *
+ * Double tap fires immediately on the second ACTION_UP (there is no triple tap to wait for);
+ * a single tap is delivered after [tapTimeoutMs] once no second tap has arrived.
  */
 class GestureDetector(
     context: Context,
@@ -48,10 +50,7 @@ class GestureDetector(
     private var tapCount = 0
 
     private val tapRunnable = Runnable {
-        when (tapCount) {
-            1 -> listener?.onSingleTap()
-            2 -> listener?.onDoubleTap()
-        }
+        if (tapCount == 1) listener?.onSingleTap()
         tapCount = 0
     }
 
@@ -130,9 +129,9 @@ class GestureDetector(
                     if (duration < ViewConfiguration.getLongPressTimeout()) {
                         tapCount++
                         handler.removeCallbacks(tapRunnable)
-                        if (tapCount >= 3) {
-                            listener?.onTripleTap()
+                        if (tapCount >= 2) {
                             tapCount = 0
+                            listener?.onDoubleTap()
                         } else {
                             handler.postDelayed(tapRunnable, tapTimeoutMs)
                         }

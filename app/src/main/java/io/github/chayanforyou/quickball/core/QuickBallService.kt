@@ -324,7 +324,6 @@ class QuickBallService : AccessibilityService() {
 
     private open inner class QuickBallGestureListener : GestureListener {
         override fun onDoubleTap() = executeGestureAction(prefs.doubleTapAction)
-        override fun onTripleTap() = executeGestureAction(prefs.tripleTapAction)
         override fun onLongPress() = executeGestureAction(prefs.longPressAction)
         override fun onSwipeUp() = executeGestureAction(prefs.swipeUpAction)
         override fun onSwipeDown() = executeGestureAction(prefs.swipeDownAction)
