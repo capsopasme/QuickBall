@@ -42,6 +42,9 @@ class QuickBallActionHandler(
     private val context: Context = accessibilityService.applicationContext
     private val handler = Handler(Looper.getMainLooper())
     private var isTorchOn = false
+    // Flash-capable camera id; found once instead of querying every camera's characteristics
+    // (one binder round trip each, and the SM8650 exposes many logical/physical cameras).
+    private var torchCameraId: String? = null
 
     private val cameraManager: CameraManager by lazy {
         context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
@@ -420,10 +423,10 @@ class QuickBallActionHandler(
         }
 
         try {
-            val cameraId = cameraManager.cameraIdList.firstOrNull { id ->
+            val cameraId = torchCameraId ?: cameraManager.cameraIdList.firstOrNull { id ->
                 cameraManager.getCameraCharacteristics(id)
                     .get(CameraCharacteristics.FLASH_INFO_AVAILABLE) == true
-            } ?: return
+            }?.also { torchCameraId = it } ?: return
 
             val newState = !isTorchOn
             cameraManager.setTorchMode(cameraId, newState)

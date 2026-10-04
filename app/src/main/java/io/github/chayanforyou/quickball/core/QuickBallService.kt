@@ -33,6 +33,7 @@ import io.github.chayanforyou.quickball.ui.floating.FloatPanelView
 import io.github.chayanforyou.quickball.ui.floating.SideKickView
 import io.github.chayanforyou.quickball.ui.floating.WaveBarView
 import io.github.chayanforyou.quickball.utils.DensityUtils
+import io.github.chayanforyou.quickball.utils.ToastUtil
 import io.github.chayanforyou.quickball.utils.getScreenSize
 import io.github.chayanforyou.quickball.utils.performHapticFeedback
 import kotlin.math.abs
@@ -140,6 +141,8 @@ class QuickBallService : AccessibilityService() {
     private val stashHandler = Handler(Looper.getMainLooper())
     private val stashRunnable = Runnable { onInactivityTimeout() }
     private var lastForegroundPackage = ""
+    // Last app screen the visibility engine reacted to; null forces the next app event through.
+    private var lastHandledPackage: String? = null
     private val recentAppTracker by lazy { RecentAppTracker(this) }
 
     // System Services & State
@@ -185,6 +188,7 @@ class QuickBallService : AccessibilityService() {
         unregisterReceiverSafe(screenReceiver)
         stashHandler.removeCallbacksAndMessages(null)
         actionHandler?.cleanup()
+        ToastUtil.destroy()
         super.onDestroy()
     }
 
@@ -215,9 +219,20 @@ class QuickBallService : AccessibilityService() {
 
         val packageName = event.packageName?.toString() ?: return
 
-        if (!shouldHandlePackage(packageName)) {
+        if (packageName == APP_PACKAGE_PREFIX) {
+            // Our own settings screen: settings (auto-hide list, enable switch...) may change
+            // there, so re-evaluate on the next app screen even if it is the same app as before.
+            lastHandledPackage = null
             return
         }
+        if (packageName in EXCLUDED_APPS) return
+
+        // Only a real activity coming to the front changes the foreground app. The keyboard
+        // (e.g. a third-party IME), popups, dialogs and other overlays fire the same event type
+        // but must not make the ball reappear inside an auto-hidden app.
+        if (!recentAppTracker.isAppScreen(event)) return
+        if (packageName == lastHandledPackage) return
+        lastHandledPackage = packageName
 
         try {
             onForegroundPackageChanged(packageName)
@@ -234,18 +249,8 @@ class QuickBallService : AccessibilityService() {
         recalculatePosition()
     }
 
-    private fun shouldHandlePackage(packageName: String): Boolean {
-        return packageName != APP_PACKAGE_PREFIX && packageName !in EXCLUDED_APPS
-    }
-
     private fun onForegroundPackageChanged(packageName: String) {
-        val triggeringPackage = lastForegroundPackage
         lastForegroundPackage = packageName
-
-        if (triggeringPackage in autoHideApps) {
-            return
-        }
-
         refreshBallVisibility()
     }
 
@@ -434,6 +439,11 @@ class QuickBallService : AccessibilityService() {
     }
 
     private fun removeFabWindow() {
+        // A stash animation still running here would finish on a detached view and then call
+        // showPill(), leaving an orphan edge handle on screen while the ball is meant to be hidden.
+        fabAnimator?.cancel()
+        fabAnimator = null
+        isStashing = false
         fabView?.let {
             try {
                 windowManager?.removeView(it)
@@ -446,8 +456,10 @@ class QuickBallService : AccessibilityService() {
     private fun snapToEdge() {
         val (screenW, screenH) = getScreenSize()
 
-        isOnRight = (fabX + fabSizePx / 2) > screenW / 2
-        savedYFraction = if (screenH > 0) (fabY.toFloat() / screenH) else 0.5f
+        currentPosition = EdgePosition(
+            isOnRight = (fabX + fabSizePx / 2) > screenW / 2,
+            yFraction = if (screenH > 0) (fabY.toFloat() / screenH) else 0.5f
+        )
 
         val targetX = getEdgeX(screenW)
 
@@ -594,7 +606,7 @@ class QuickBallService : AccessibilityService() {
 
     @SuppressLint("ClickableViewAccessibility")
     private fun showPill() {
-        if (pillView != null) return
+        if (pillView != null || fabView == null) return
         val wm = windowManager ?: return
 
         val pillWidth = DensityUtils.dp2px(prefs.pillTouchWidth)
@@ -878,6 +890,9 @@ class QuickBallService : AccessibilityService() {
         if (isExpanded) {
             removeMenuWindow()
         }
+        // Hidden (disabled, auto-hide app, landscape, lock screen): nothing to lay out. Without
+        // this, a rotation or dark-mode switch re-created the pill of a hidden, stashed ball.
+        if (fabView == null) return
 
         val (screenW, screenH) = getScreenSize()
 
