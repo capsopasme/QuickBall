@@ -32,7 +32,6 @@ class AppPreference private constructor(context: Context) {
         private const val KEY_PILL_TOUCH_WIDTH = "pill_touch_width"
         private const val KEY_PILL_ARC_ANGLE = "pill_arc_angle"
         private const val KEY_GESTURE_ENABLED = "pill_gesture_enabled"
-        private const val KEY_DOUBLE_TAP = "pill_double_tap"
         private const val KEY_LONG_PRESS = "pill_long_press"
         private const val KEY_SWIPE_UP = "pill_swipe_up"
         private const val KEY_SWIPE_DOWN = "pill_swipe_down"
@@ -150,10 +149,6 @@ class AppPreference private constructor(context: Context) {
     var isGestureEnabled: Boolean
         get() = prefs.getBoolean(KEY_GESTURE_ENABLED, AppDefaults.GESTURE_ENABLED)
         set(value) = prefs.edit { putBoolean(KEY_GESTURE_ENABLED, value) }
-
-    var doubleTapAction: String
-        get() = prefs.getString(KEY_DOUBLE_TAP, AppDefaults.DOUBLE_TAP_ACTION) ?: AppDefaults.DOUBLE_TAP_ACTION
-        set(value) = prefs.edit { putString(KEY_DOUBLE_TAP, value) }
 
     var longPressAction: String
         get() = prefs.getString(KEY_LONG_PRESS, AppDefaults.LONG_PRESS_ACTION) ?: AppDefaults.LONG_PRESS_ACTION

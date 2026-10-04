@@ -146,7 +146,6 @@
     <string name="gesture_requirement_notice">Gesten funktionieren auf der Pill am Rand, wenn \"Am Rand anheften\" aktiviert ist, oder auf dem schwebenden Ball, wenn \"Ballposition sperren\" aktiviert ist.</string>
     <string name="enable_gestures_title">Gesten aktivieren</string>
     <string name="enable_gestures_description">Das Aktivieren von Gesten kann das Öffnen des Menüs leicht verzögern.</string>
-    <string name="double_tap_title">Doppeltippen</string>
     <string name="long_press_title">Gedrückt halten</string>
     <string name="swipe_up_title">Nach oben wischen</string>
     <string name="swipe_down_title">Nach unten wischen</string>

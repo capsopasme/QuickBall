@@ -16,7 +16,7 @@ import io.github.chayanforyou.quickball.utils.DensityUtils
 /**
  * A stashed edge handle view that renders a curved translucent arc along the left or right screen edge.
  *
- * Handles single tap, double tap, long-press, and vertical swipe gestures via exposed callback listeners.
+ * Handles single tap, long-press, and vertical swipe gestures via exposed callback listeners.
  */
 class SideKickView @JvmOverloads constructor(
     context: Context,

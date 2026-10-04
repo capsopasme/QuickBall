@@ -146,7 +146,6 @@
     <string name="gesture_requirement_notice">जेस्चर किनारे की पिल पर काम करेंगे जब \"किनारे से चिपकाएं\" सक्षम हो, या फ्लोटिंग बॉल पर जब \"बॉल की स्थिति लॉक करें\" सक्षम हो।</string>
     <string name="enable_gestures_title">जेस्चर सक्षम करें</string>
     <string name="enable_gestures_description">जेस्चर सक्षम करने से मेनू खुलने में थोड़ी देरी हो सकती है।</string>
-    <string name="double_tap_title">डबल टैप</string>
     <string name="long_press_title">देर तक दबाएं</string>
     <string name="swipe_up_title">ऊपर स्वाइप करें</string>
     <string name="swipe_down_title">नीचे स्वाइप करें</string>

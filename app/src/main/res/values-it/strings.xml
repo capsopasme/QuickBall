@@ -146,7 +146,6 @@
     <string name="gesture_requirement_notice">I gesti funzionano sulla pillola laterale quando \"Aggancia al bordo\" è abilitato, o sulla sfera fluttuante quando \"Blocca posizione della sfera\" è abilitato.</string>
     <string name="enable_gestures_title">Abilita gesti</string>
     <string name="enable_gestures_description">L\'abilitazione dei gesti potrebbe ritardare leggermente l\'apertura del menu.</string>
-    <string name="double_tap_title">Doppio tocco</string>
     <string name="long_press_title">Pressione prolungata</string>
     <string name="swipe_up_title">Scorri verso l\'alto</string>
     <string name="swipe_down_title">Scorri verso il basso</string>

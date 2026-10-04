@@ -17,7 +17,7 @@ import kotlin.math.sin
 /**
  * A second, swipe-only edge handle drawn as a vertical sine wave.
  *
- * Unlike [SideKickView] it has no tap, double tap or long press, so there is nothing to
+ * Unlike [SideKickView] it has no tap or long press, so there is nothing to
  * disambiguate: the action fires the moment a vertical swipe crosses the threshold, before the
  * finger lifts. Each touch sequence fires at most once. Taps are consumed and ignored.
  */

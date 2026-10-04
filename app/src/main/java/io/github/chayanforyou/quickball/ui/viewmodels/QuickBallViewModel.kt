@@ -34,7 +34,6 @@ data class QuickBallUiState(
     val pillTouchWidth: Float = AppDefaults.PILL_TOUCH_WIDTH,
     val pillArcAngle: Float = AppDefaults.PILL_ARC_ANGLE,
     val isGestureEnabled: Boolean = AppDefaults.GESTURE_ENABLED,
-    val doubleTapAction: String = AppDefaults.DOUBLE_TAP_ACTION,
     val longPressAction: String = AppDefaults.LONG_PRESS_ACTION,
     val swipeUpAction: String = AppDefaults.SWIPE_UP_ACTION,
     val swipeDownAction: String = AppDefaults.SWIPE_DOWN_ACTION,
@@ -72,7 +71,6 @@ class QuickBallViewModel(application: Application) : AndroidViewModel(applicatio
             pillTouchWidth = prefs.pillTouchWidth,
             pillArcAngle = prefs.pillArcAngle,
             isGestureEnabled = prefs.isGestureEnabled,
-            doubleTapAction = prefs.doubleTapAction,
             longPressAction = prefs.longPressAction,
             swipeUpAction = prefs.swipeUpAction,
             swipeDownAction = prefs.swipeDownAction,
@@ -211,11 +209,6 @@ class QuickBallViewModel(application: Application) : AndroidViewModel(applicatio
     fun setGestureEnabled(enabled: Boolean) {
         prefs.isGestureEnabled = enabled
         _uiState.update { it.copy(isGestureEnabled = enabled) }
-    }
-
-    fun setDoubleTapAction(action: String) {
-        prefs.doubleTapAction = action
-        _uiState.update { it.copy(doubleTapAction = action) }
     }
 
     fun setLongPressAction(action: String) {
