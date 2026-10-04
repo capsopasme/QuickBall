@@ -58,6 +58,10 @@ class QuickBallService : AccessibilityService() {
         private val EXCLUDED_APPS = setOf(
             "com.android.systemui",
             "com.android.intentresolver",
+            // AOSP/LineageOS name; GrantPermissionsActivity is a real activity, so without it a
+            // runtime-permission dialog counted as a new foreground app and showed the ball
+            // inside an auto-hidden app.
+            "com.android.permissioncontroller",
             "com.google.android.permissioncontroller",
             "android.uid.system:1000",
             "com.google.android.googlequicksearchbox",
@@ -144,6 +148,7 @@ class QuickBallService : AccessibilityService() {
     // Last app screen the visibility engine reacted to; null forces the next app event through.
     private var lastHandledPackage: String? = null
     private val recentAppTracker by lazy { RecentAppTracker(this) }
+    private var isScreenReceiverRegistered = false
 
     // System Services & State
     private val keyguard by lazy { getSystemService<KeyguardManager>() as KeyguardManager }
@@ -161,35 +166,72 @@ class QuickBallService : AccessibilityService() {
 
     override fun onServiceConnected() {
         super.onServiceConnected()
+        // The system may hand a reconnect to an instance that is still alive from an earlier
+        // connection; drop anything left from it (stale views, a registered receiver) first.
+        teardown()
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         initFloatingBall()
         registerScreenReceiver()
     }
 
+    /**
+     * The settings screen talks to the service with startService(). Handle the command, then
+     * drop the "started" state right away: the system's accessibility binding alone must decide
+     * the service's lifetime. Left started (and sticky), the instance outlived a disabled
+     * accessibility service, so a later re-enable reused its stale views (no ball appeared) and
+     * its still-registered screen receiver tried to add overlay windows without a token.
+     */
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        when (intent?.action) {
-            ACTION_ENABLE -> showBall()
-            ACTION_DISABLE -> hideBall()
-            ACTION_STASH -> stashFab()
-            ACTION_UNSTASH -> unstashFab()
-            ACTION_UPDATE_BALL -> updateBall()
-            ACTION_UPDATE_PILL -> updatePill()
-            ACTION_UPDATE_WAVE -> updateWave()
+        if (windowManager != null) {
+            when (intent?.action) {
+                ACTION_ENABLE -> showBall()
+                ACTION_DISABLE -> hideBall()
+                ACTION_STASH -> stashFab()
+                ACTION_UNSTASH -> unstashFab()
+                ACTION_UPDATE_BALL -> updateBall()
+                ACTION_UPDATE_PILL -> updatePill()
+                ACTION_UPDATE_WAVE -> updateWave()
+            }
         }
-        return START_STICKY
+        // While the system is bound this only clears the started state; it never stops a
+        // connected accessibility service.
+        stopSelf(startId)
+        return START_NOT_STICKY
+    }
+
+    /** Accessibility was turned off (or the system dropped the binding): release everything. */
+    override fun onUnbind(intent: Intent?): Boolean {
+        teardown()
+        stopSelf()
+        return super.onUnbind(intent)
     }
 
     override fun onDestroy() {
+        teardown()
+        super.onDestroy()
+    }
+
+    /** Idempotent: removes every window, timer, receiver and callback this instance owns. */
+    private fun teardown() {
         stopInactivityTimer()
         removePill()
         removeFabWindow()
         removeMenuWindow()
         removeWave()
-        unregisterReceiverSafe(screenReceiver)
+        if (isScreenReceiverRegistered) {
+            unregisterReceiverSafe(screenReceiver)
+            isScreenReceiverRegistered = false
+        }
         stashHandler.removeCallbacksAndMessages(null)
         actionHandler?.cleanup()
+        actionHandler = null
         ToastUtil.destroy()
-        super.onDestroy()
+        isExpanded = false
+        isStashed = false
+        isDragging = false
+        lastHandledPackage = null
+        // Without a connection there is no window token; every add/show path checks this.
+        windowManager = null
     }
 
     /* -------------------- Initialization -------------------- */
@@ -384,7 +426,12 @@ class QuickBallService : AccessibilityService() {
 
             listener = object : QuickBallGestureListener() {
                 override fun onTouchDown() {
-                    if (isStashing) return
+                    // A touch during the stash animation used to return early here, leaving the
+                    // drag origin and screen bounds unset (0 on the first touch). If the finger
+                    // was still down when the animation ended, onDragMove then coerced into an
+                    // empty range and crashed the service, or dragged a ball that was still
+                    // flagged as stashed. Bring the ball back instantly and start a normal touch.
+                    if (isStashing) unstashFab(animated = false)
                     stopInactivityTimer()
                     fabAnimator?.cancel()
                     isStashed = false
@@ -402,7 +449,9 @@ class QuickBallService : AccessibilityService() {
                 }
 
                 override fun onDragMove(dx: Float, dy: Float) {
-                    if (isStashing) return
+                    if (screenW <= fabSizePx || screenH <= fabSizePx + topBoundary + bottomBoundary) {
+                        return
+                    }
                     isDragging = true
                     stopInactivityTimer()
                     alpha = 1.0f
@@ -433,7 +482,15 @@ class QuickBallService : AccessibilityService() {
             }
         }
 
-        wm.addView(fabView, fabParams)
+        try {
+            wm.addView(fabView, fabParams)
+        } catch (e: Exception) {
+            // e.g. BadTokenException when the accessibility connection is already gone.
+            Log.e(TAG, "Failed to add floating ball", e)
+            fabView = null
+            fabParams = null
+            return
+        }
 
         resetInactivityTimer()
     }
@@ -506,6 +563,7 @@ class QuickBallService : AccessibilityService() {
                 showPill()
             }
         } else {
+            isStashing = false
             view.alpha = stashAlpha
             fabX = targetX
             params.x = targetX
@@ -636,7 +694,13 @@ class QuickBallService : AccessibilityService() {
             y = targetY
         }
 
-        wm.addView(pillView, pillParams)
+        try {
+            wm.addView(pillView, pillParams)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to add edge handle", e)
+            pillView = null
+            pillParams = null
+        }
     }
 
     private fun removePill() {
@@ -828,7 +892,17 @@ class QuickBallService : AccessibilityService() {
             y = 0
         }
 
-        wm.addView(menuView, menuParams)
+        try {
+            wm.addView(menuView, menuParams)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to add menu", e)
+            menuView = null
+            menuParams = null
+            isExpanded = false
+            fabView?.setExpanded(false, animate = false)
+            resetInactivityTimer()
+            return
+        }
         menuView?.animateExpand()
     }
 
@@ -941,6 +1015,7 @@ class QuickBallService : AccessibilityService() {
     }
 
     private fun registerScreenReceiver() {
+        if (isScreenReceiverRegistered) return
         val filter = IntentFilter().apply {
             addAction(Intent.ACTION_SCREEN_ON)
             addAction(Intent.ACTION_SCREEN_OFF)
@@ -953,6 +1028,7 @@ class QuickBallService : AccessibilityService() {
             @Suppress("UnspecifiedRegisterReceiverFlag")
             registerReceiver(screenReceiver, filter)
         }
+        isScreenReceiverRegistered = true
     }
 
     private fun unregisterReceiverSafe(receiver: BroadcastReceiver) {
@@ -961,8 +1037,31 @@ class QuickBallService : AccessibilityService() {
 
     private val screenReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            refreshBallVisibility()
+            if (intent?.action == Intent.ACTION_SCREEN_OFF) {
+                onScreenOff()
+            } else {
+                refreshBallVisibility()
+            }
         }
+    }
+
+    /**
+     * The keyguard usually locks only after SCREEN_OFF (or much later with a lock delay), so
+     * isKeyguardLocked is still false here and refreshBallVisibility() would leave the ball as
+     * it is. It then showed for a frame on the lock screen at the next SCREEN_ON before being
+     * hidden. Apply the lock-screen state now instead; SCREEN_ON / USER_PRESENT re-evaluate it,
+     * so turning the screen back on before it actually locks just shows the ball again.
+     */
+    private fun onScreenOff() {
+        if (!isEnabled || !showOnLockScreen) {
+            hideBall()
+            return
+        }
+        if (fabView == null) return
+        // Animations don't advance while the display is off; drop the menu without one.
+        removeMenuWindow()
+        stopInactivityTimer()
+        stashFab(animated = false)
     }
 
     private fun createSystemWindowParams(
