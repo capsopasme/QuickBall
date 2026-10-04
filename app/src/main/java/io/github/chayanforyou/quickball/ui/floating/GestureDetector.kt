@@ -15,8 +15,6 @@ interface GestureListener {
     fun onTouchDown() {}
     fun onTouchCancel() {}
     fun onSingleTap() {}
-    fun onDoubleTap() {}
-    fun onTripleTap() {}
     fun onLongPress() {}
     fun onSwipeUp() {}
     fun onSwipeDown() {}
@@ -27,7 +25,9 @@ interface GestureListener {
 /**
  * Reusable gesture detector for floating overlay views (e.g. Floating Button and Pill View).
  *
- * Recognizes single tap, double tap, triple tap, long press, and vertical swipe gestures.
+ * Recognizes single tap, long press, and vertical swipe gestures. There are no multi-tap
+ * gestures, so a single tap fires on ACTION_UP with no waiting window, and nothing is left
+ * scheduled on the main looper after a tap.
  */
 class GestureDetector(
     context: Context,
@@ -37,34 +37,23 @@ class GestureDetector(
     private val handler = Handler(Looper.getMainLooper())
     private val swipeThreshold = 24f * context.resources.displayMetrics.density
     private val touchSlop = ViewConfiguration.get(context).scaledTouchSlop.toFloat()
-    private val tapTimeoutMs = 200L
     private val longPressTimeoutMs = ViewConfiguration.getLongPressTimeout().toLong()
 
     private var startX = 0f
     private var startY = 0f
-    private var downTime = 0L
+    private var isLongPressPending = false
     private var isSwipeTriggered = false
     private var isLongPressTriggered = false
-    private var tapCount = 0
-
-    private val tapRunnable = Runnable {
-        when (tapCount) {
-            1 -> listener?.onSingleTap()
-            2 -> listener?.onDoubleTap()
-        }
-        tapCount = 0
-    }
 
     private val longPressRunnable = Runnable {
+        isLongPressPending = false
         isLongPressTriggered = true
-        handler.removeCallbacks(tapRunnable)
-        tapCount = 0
         listener?.onLongPress()
     }
 
     fun onTouchEvent(event: MotionEvent): Boolean {
         if (!isGestureEnabled()) {
-            return when (event.action) {
+            return when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
                     listener?.onTouchDown()
                     true
@@ -84,16 +73,16 @@ class GestureDetector(
             }
         }
 
-        when (event.action) {
+        when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
                 listener?.onTouchDown()
                 startX = event.rawX
                 startY = event.rawY
-                downTime = System.currentTimeMillis()
                 isSwipeTriggered = false
                 isLongPressTriggered = false
-                handler.removeCallbacks(longPressRunnable)
+                cancelLongPress()
                 handler.postDelayed(longPressRunnable, longPressTimeoutMs)
+                isLongPressPending = true
                 return true
             }
 
@@ -103,16 +92,14 @@ class GestureDetector(
                 val dx = event.rawX - startX
                 val dy = event.rawY - startY
 
-                if (hypot(dx, dy) > touchSlop) {
-                    handler.removeCallbacks(longPressRunnable)
+                if (isLongPressPending && hypot(dx, dy) > touchSlop) {
+                    cancelLongPress()
                 }
 
                 // Check if vertical swipe is predominant and passes threshold
                 if (abs(dy) > swipeThreshold && abs(dy) > abs(dx) * 2f) {
                     isSwipeTriggered = true
-                    handler.removeCallbacks(longPressRunnable)
-                    handler.removeCallbacks(tapRunnable)
-                    tapCount = 0
+                    cancelLongPress()
 
                     if (dy < 0) {
                         listener?.onSwipeUp()
@@ -124,21 +111,13 @@ class GestureDetector(
             }
 
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                handler.removeCallbacks(longPressRunnable)
-                if (!isSwipeTriggered && !isLongPressTriggered && event.action == MotionEvent.ACTION_UP) {
-                    val duration = System.currentTimeMillis() - downTime
-                    if (duration < ViewConfiguration.getLongPressTimeout()) {
-                        tapCount++
-                        handler.removeCallbacks(tapRunnable)
-                        if (tapCount >= 3) {
-                            listener?.onTripleTap()
-                            tapCount = 0
-                        } else {
-                            handler.postDelayed(tapRunnable, tapTimeoutMs)
-                        }
-                    }
-                } else if (event.action == MotionEvent.ACTION_CANCEL) {
+                cancelLongPress()
+                if (event.actionMasked == MotionEvent.ACTION_CANCEL) {
                     listener?.onTouchCancel()
+                } else if (!isSwipeTriggered && !isLongPressTriggered &&
+                    event.eventTime - event.downTime < longPressTimeoutMs
+                ) {
+                    listener?.onSingleTap()
                 }
                 isSwipeTriggered = false
                 isLongPressTriggered = false
@@ -149,8 +128,14 @@ class GestureDetector(
         }
     }
 
+    private fun cancelLongPress() {
+        if (isLongPressPending) {
+            handler.removeCallbacks(longPressRunnable)
+            isLongPressPending = false
+        }
+    }
+
     fun cleanup() {
-        handler.removeCallbacks(longPressRunnable)
-        handler.removeCallbacks(tapRunnable)
+        cancelLongPress()
     }
 }

@@ -31,10 +31,13 @@ import io.github.chayanforyou.quickball.ui.floating.GestureListener
 import io.github.chayanforyou.quickball.ui.floating.FloatTouchView
 import io.github.chayanforyou.quickball.ui.floating.FloatPanelView
 import io.github.chayanforyou.quickball.ui.floating.SideKickView
+import io.github.chayanforyou.quickball.ui.floating.WaveBarView
 import io.github.chayanforyou.quickball.utils.DensityUtils
+import io.github.chayanforyou.quickball.utils.ToastUtil
 import io.github.chayanforyou.quickball.utils.getScreenSize
 import io.github.chayanforyou.quickball.utils.performHapticFeedback
 import kotlin.math.abs
+import kotlin.math.max
 import kotlin.math.roundToInt
 
 @SuppressLint("AccessibilityPolicy")
@@ -49,6 +52,7 @@ class QuickBallService : AccessibilityService() {
         const val ACTION_UNSTASH = "io.github.chayanforyou.quickball.action.UNSTASH"
         const val ACTION_UPDATE_BALL = "io.github.chayanforyou.quickball.action.UPDATE_BALL"
         const val ACTION_UPDATE_PILL = "io.github.chayanforyou.quickball.action.UPDATE_PILL"
+        const val ACTION_UPDATE_WAVE = "io.github.chayanforyou.quickball.action.UPDATE_WAVE"
 
         private const val APP_PACKAGE_PREFIX = "io.github.chayanforyou.quickball"
         private val EXCLUDED_APPS = setOf(
@@ -63,6 +67,7 @@ class QuickBallService : AccessibilityService() {
         )
 
         const val EDGE_PADDING_DP = 6f
+        const val WAVE_GAP_DP = 8f
         const val STASH_DELAY_MS = 2500L
     }
 
@@ -74,6 +79,8 @@ class QuickBallService : AccessibilityService() {
     private var pillParams: WindowManager.LayoutParams? = null
     private var menuView: FloatPanelView? = null
     private var menuParams: WindowManager.LayoutParams? = null
+    private var waveView: WaveBarView? = null
+    private var waveParams: WindowManager.LayoutParams? = null
     private var actionHandler: QuickBallActionHandler? = null
 
     // Layout Boundaries & Sizing
@@ -134,6 +141,9 @@ class QuickBallService : AccessibilityService() {
     private val stashHandler = Handler(Looper.getMainLooper())
     private val stashRunnable = Runnable { onInactivityTimeout() }
     private var lastForegroundPackage = ""
+    // Last app screen the visibility engine reacted to; null forces the next app event through.
+    private var lastHandledPackage: String? = null
+    private val recentAppTracker by lazy { RecentAppTracker(this) }
 
     // System Services & State
     private val keyguard by lazy { getSystemService<KeyguardManager>() as KeyguardManager }
@@ -164,6 +174,7 @@ class QuickBallService : AccessibilityService() {
             ACTION_UNSTASH -> unstashFab()
             ACTION_UPDATE_BALL -> updateBall()
             ACTION_UPDATE_PILL -> updatePill()
+            ACTION_UPDATE_WAVE -> updateWave()
         }
         return START_STICKY
     }
@@ -173,9 +184,11 @@ class QuickBallService : AccessibilityService() {
         removePill()
         removeFabWindow()
         removeMenuWindow()
+        removeWave()
         unregisterReceiverSafe(screenReceiver)
         stashHandler.removeCallbacksAndMessages(null)
         actionHandler?.cleanup()
+        ToastUtil.destroy()
         super.onDestroy()
     }
 
@@ -191,7 +204,7 @@ class QuickBallService : AccessibilityService() {
             yFraction = prefs.landscapeYFraction
         )
 
-        actionHandler = QuickBallActionHandler(this) {
+        actionHandler = QuickBallActionHandler(this, recentAppTracker) {
             startCollapsingMenu()
             stashFab()
         }
@@ -202,11 +215,24 @@ class QuickBallService : AccessibilityService() {
     /* -------------------- Accessibility & System Events -------------------- */
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
+        recentAppTracker.onAccessibilityEvent(event)
+
         val packageName = event.packageName?.toString() ?: return
 
-        if (!shouldHandlePackage(packageName)) {
+        if (packageName == APP_PACKAGE_PREFIX) {
+            // Our own settings screen: settings (auto-hide list, enable switch...) may change
+            // there, so re-evaluate on the next app screen even if it is the same app as before.
+            lastHandledPackage = null
             return
         }
+        if (packageName in EXCLUDED_APPS) return
+
+        // Only a real activity coming to the front changes the foreground app. The keyboard
+        // (e.g. a third-party IME), popups, dialogs and other overlays fire the same event type
+        // but must not make the ball reappear inside an auto-hidden app.
+        if (!recentAppTracker.isAppScreen(event)) return
+        if (packageName == lastHandledPackage) return
+        lastHandledPackage = packageName
 
         try {
             onForegroundPackageChanged(packageName)
@@ -223,18 +249,8 @@ class QuickBallService : AccessibilityService() {
         recalculatePosition()
     }
 
-    private fun shouldHandlePackage(packageName: String): Boolean {
-        return packageName != APP_PACKAGE_PREFIX && packageName !in EXCLUDED_APPS
-    }
-
     private fun onForegroundPackageChanged(packageName: String) {
-        val triggeringPackage = lastForegroundPackage
         lastForegroundPackage = packageName
-
-        if (triggeringPackage in autoHideApps) {
-            return
-        }
-
         refreshBallVisibility()
     }
 
@@ -279,6 +295,7 @@ class QuickBallService : AccessibilityService() {
             stashFab(animated = false)
             resetInactivityTimer()
         }
+        showWave()
     }
 
     private fun hideBall() {
@@ -286,6 +303,7 @@ class QuickBallService : AccessibilityService() {
         removePill()
         removeFabWindow()
         removeMenuWindow()
+        removeWave()
     }
 
     private fun updateBall() {
@@ -320,11 +338,10 @@ class QuickBallService : AccessibilityService() {
             wm.updateViewLayout(pill, params)
         } catch (_: Exception) {
         }
+        layoutWave()
     }
 
     private open inner class QuickBallGestureListener : GestureListener {
-        override fun onDoubleTap() = executeGestureAction(prefs.doubleTapAction)
-        override fun onTripleTap() = executeGestureAction(prefs.tripleTapAction)
         override fun onLongPress() = executeGestureAction(prefs.longPressAction)
         override fun onSwipeUp() = executeGestureAction(prefs.swipeUpAction)
         override fun onSwipeDown() = executeGestureAction(prefs.swipeDownAction)
@@ -422,6 +439,11 @@ class QuickBallService : AccessibilityService() {
     }
 
     private fun removeFabWindow() {
+        // A stash animation still running here would finish on a detached view and then call
+        // showPill(), leaving an orphan edge handle on screen while the ball is meant to be hidden.
+        fabAnimator?.cancel()
+        fabAnimator = null
+        isStashing = false
         fabView?.let {
             try {
                 windowManager?.removeView(it)
@@ -434,8 +456,10 @@ class QuickBallService : AccessibilityService() {
     private fun snapToEdge() {
         val (screenW, screenH) = getScreenSize()
 
-        isOnRight = (fabX + fabSizePx / 2) > screenW / 2
-        savedYFraction = if (screenH > 0) (fabY.toFloat() / screenH) else 0.5f
+        currentPosition = EdgePosition(
+            isOnRight = (fabX + fabSizePx / 2) > screenW / 2,
+            yFraction = if (screenH > 0) (fabY.toFloat() / screenH) else 0.5f
+        )
 
         val targetX = getEdgeX(screenW)
 
@@ -445,6 +469,7 @@ class QuickBallService : AccessibilityService() {
         animateFabX(targetX, duration) {
             resetInactivityTimer()
         }
+        layoutWave()
     }
 
     private fun stashFab(animated: Boolean = true) {
@@ -581,7 +606,7 @@ class QuickBallService : AccessibilityService() {
 
     @SuppressLint("ClickableViewAccessibility")
     private fun showPill() {
-        if (pillView != null) return
+        if (pillView != null || fabView == null) return
         val wm = windowManager ?: return
 
         val pillWidth = DensityUtils.dp2px(prefs.pillTouchWidth)
@@ -623,6 +648,126 @@ class QuickBallService : AccessibilityService() {
             pillView = null
         }
         pillParams = null
+    }
+
+    /* -------------------- Wave Edge Bar -------------------- */
+
+    /**
+     * The wave bar is a second, swipe-only handle. It is shown and hidden together with the ball
+     * (same lock-screen, landscape and auto-hide rules) and only when enabled in settings.
+     */
+    @SuppressLint("ClickableViewAccessibility")
+    private fun showWave() {
+        if (!prefs.isWaveEnabled) {
+            removeWave()
+            return
+        }
+        if (waveView != null) {
+            layoutWave()
+            return
+        }
+        val wm = windowManager ?: return
+
+        val view = WaveBarView(this).apply {
+            listener = object : WaveBarView.Listener {
+                override fun onSwipeUp() = executeWaveAction(prefs.waveSwipeUpAction)
+                override fun onSwipeDown() = executeWaveAction(prefs.waveSwipeDownAction)
+            }
+        }
+        val params = createSystemWindowParams(width = 1, height = 1)
+        applyWaveLayout(view, params)
+
+        try {
+            wm.addView(view, params)
+            waveView = view
+            waveParams = params
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to add wave bar", e)
+        }
+    }
+
+    /** Re-reads settings: creates, updates or removes the bar as needed. */
+    private fun updateWave() {
+        if (prefs.isWaveEnabled && fabView != null) {
+            showWave()
+            waveView?.update()
+        } else {
+            removeWave()
+        }
+    }
+
+    /** Moves/resizes the bar, e.g. after the ball was dragged; no-op when nothing changed. */
+    private fun layoutWave() {
+        val view = waveView ?: return
+        val params = waveParams ?: return
+        if (applyWaveLayout(view, params)) {
+            updateFabViewLayout(view, params)
+        }
+    }
+
+    /** Writes the bar's geometry into [params]; returns true if anything changed. */
+    private fun applyWaveLayout(view: WaveBarView, params: WindowManager.LayoutParams): Boolean {
+        val (screenW, screenH) = getScreenSize()
+        val width = DensityUtils.dp2px(prefs.waveTouchWidth)
+        val height = DensityUtils.dp2px(prefs.waveHeight).coerceAtMost(screenH)
+        val onRight = prefs.waveOnRight
+        val x = if (onRight) screenW - width else 0
+        val y = computeWaveY(screenH, height, onRight)
+
+        view.onRight = onRight
+        val changed = params.width != width || params.height != height ||
+                params.x != x || params.y != y
+        params.width = width
+        params.height = height
+        params.x = x
+        params.y = y
+        return changed
+    }
+
+    /**
+     * Places the bar at its configured position, but when it shares an edge with the ball, moves
+     * it just above or below the ball/pill (whichever is closer and fits) so they never overlap.
+     */
+    private fun computeWaveY(screenH: Int, waveH: Int, waveOnRight: Boolean): Int {
+        val maxY = max(0, screenH - waveH)
+        val desired = (prefs.waveYFraction * screenH - waveH / 2f).roundToInt().coerceIn(0, maxY)
+        if (fabView == null || waveOnRight != isOnRight) return desired
+
+        val gap = DensityUtils.dp2px(WAVE_GAP_DP)
+        val pillH = DensityUtils.dp2px(prefs.pillHeight)
+        val center = fabY + fabSizePx / 2
+        val half = max(fabSizePx, pillH) / 2
+        val occupiedTop = center - half - gap
+        val occupiedBottom = center + half + gap
+        if (desired + waveH <= occupiedTop || desired >= occupiedBottom) return desired
+
+        val above = occupiedTop - waveH
+        val below = occupiedBottom
+        val fitsAbove = above >= 0
+        val fitsBelow = below + waveH <= screenH
+        return when {
+            fitsAbove && fitsBelow -> if (desired - above <= below - desired) above else below
+            fitsAbove -> above
+            fitsBelow -> below
+            else -> desired
+        }
+    }
+
+    private fun removeWave() {
+        waveView?.let {
+            try {
+                windowManager?.removeView(it)
+            } catch (_: Exception) {
+            }
+        }
+        waveView = null
+        waveParams = null
+    }
+
+    private fun executeWaveAction(actionName: String) {
+        val action = MenuAction.fromName(actionName) ?: return
+        performHapticFeedback()
+        actionHandler?.onMenuAction(QuickBallMenuItem(action = action))
     }
 
     /* -------------------- Menu Window Management -------------------- */
@@ -745,6 +890,9 @@ class QuickBallService : AccessibilityService() {
         if (isExpanded) {
             removeMenuWindow()
         }
+        // Hidden (disabled, auto-hide app, landscape, lock screen): nothing to lay out. Without
+        // this, a rotation or dark-mode switch re-created the pill of a hidden, stashed ball.
+        if (fabView == null) return
 
         val (screenW, screenH) = getScreenSize()
 
@@ -780,6 +928,7 @@ class QuickBallService : AccessibilityService() {
             isStashed = false
             resetInactivityTimer()
         }
+        layoutWave()
     }
 
     private fun getEdgeX(screenW: Int = getScreenSize().first): Int {

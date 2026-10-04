@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="localsend_settings_title">LocalSend 目标设备</string>
+    <string name="localsend_settings_subtitle">「剪贴板发送到 LocalSend」的接收设备</string>
+    <string name="localsend_settings_description">填写接收设备上 LocalSend 显示的 IP 和端口（设置 → 网络）。建议在路由器里给那台设备固定 IP。</string>
+    <string name="localsend_host_label">IP 地址</string>
+    <string name="localsend_port_label">端口</string>
+    <string name="localsend_https_title">加密（HTTPS）</string>
+    <string name="localsend_https_description">需与接收端 LocalSend 的「加密」设置一致</string>
+    <string name="localsend_pin_label">PIN（可选）</string>
+    <string name="localsend_alias_label">名称（可选）</string>
+    <string name="localsend_fingerprint_label">证书指纹</string>
+    <string name="localsend_fingerprint_hint">点「检测」自动填写；留空表示接受任何证书。</string>
+    <string name="localsend_detect">检测</string>
+    <string name="localsend_detecting">正在连接…</string>
+    <string name="localsend_detected">已找到 %1$s，已保存</string>
+    <string name="localsend_save">保存</string>
+    <string name="localsend_saved">已保存</string>
+    <string name="localsend_test">发送测试消息</string>
+    <string name="localsend_test_message">来自 Quick Ball 的测试消息</string>
+    <string name="localsend_test_waiting">已发出，在接收端关闭消息后测试完成</string>
+    <string name="localsend_test_ok">测试消息已送达</string>
+    <string name="localsend_invalid_target">请填写有效的 IP 地址和端口</string>
+    <string name="localsend_not_configured">请先在 Quick Ball 中设置 LocalSend 目标设备</string>
+    <string name="localsend_clipboard_empty">剪贴板为空</string>
+    <string name="localsend_sent">已发送到 %1$s</string>
+    <string name="localsend_rejected">对方拒绝了这条消息</string>
+    <string name="localsend_pin_required">对方需要 PIN</string>
+    <string name="localsend_pin_invalid">PIN 错误</string>
+    <string name="localsend_pin_blocked">PIN 错误次数过多，请稍后再试</string>
+    <string name="localsend_busy">对方正在进行其他传输</string>
+    <string name="localsend_fingerprint_mismatch">对方证书已变化；如确认是同一设备，请重新「检测」</string>
+    <string name="localsend_unreachable">无法连接 %1$s</string>
+    <string name="localsend_http_error">发送失败（HTTP %1$d）</string>
+</resources>

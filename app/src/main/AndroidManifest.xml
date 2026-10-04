@@ -24,6 +24,9 @@
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
 
+    <!-- Sending clipboard text to a LocalSend device on the local network -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <!-- Required for background battery optimization request -->
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
@@ -36,7 +39,9 @@
         android:localeConfig="@xml/locales_config"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme"
+        android:usesCleartextTraffic="true">
+        <!-- Cleartext is only used for LocalSend receivers that have encryption turned off. -->
 
         <activity
             android:name=".ui.MainActivity"
@@ -47,6 +52,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Briefly takes window focus so the clipboard can be read (Android 10+) -->
+        <activity
+            android:name=".localsend.ClipboardSendActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@style/Theme.ClipboardReader" />
 
         <!-- Accessibility Service for Floating Ball -->
         <service

@@ -8,6 +8,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.chayanforyou.quickball.domain.models.MenuAction
 import io.github.chayanforyou.quickball.domain.models.QuickBallMenuItem
+import io.github.chayanforyou.quickball.localsend.LocalSendTarget
 
 class AppPreference private constructor(context: Context) {
     private val prefs: SharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -31,8 +32,6 @@ class AppPreference private constructor(context: Context) {
         private const val KEY_PILL_TOUCH_WIDTH = "pill_touch_width"
         private const val KEY_PILL_ARC_ANGLE = "pill_arc_angle"
         private const val KEY_GESTURE_ENABLED = "pill_gesture_enabled"
-        private const val KEY_DOUBLE_TAP = "pill_double_tap"
-        private const val KEY_TRIPLE_TAP = "pill_triple_tap"
         private const val KEY_LONG_PRESS = "pill_long_press"
         private const val KEY_SWIPE_UP = "pill_swipe_up"
         private const val KEY_SWIPE_DOWN = "pill_swipe_down"
@@ -50,6 +49,21 @@ class AppPreference private constructor(context: Context) {
         private const val KEY_ONBOARDING_COMPLETED = "onboarding_completed"
         private const val KEY_HAPTIC_FEEDBACK_ENABLED = "haptic_feedback_enabled"
         private const val KEY_HAPTIC_INTENSITY = "haptic_intensity"
+        private const val KEY_WAVE_ENABLED = "wave_enabled"
+        private const val KEY_WAVE_ON_RIGHT = "wave_on_right"
+        private const val KEY_WAVE_Y_FRACTION = "wave_y_fraction"
+        private const val KEY_WAVE_HEIGHT = "wave_height"
+        private const val KEY_WAVE_TOUCH_WIDTH = "wave_touch_width"
+        private const val KEY_WAVE_THICKNESS = "wave_thickness"
+        private const val KEY_WAVE_COLOR = "wave_color"
+        private const val KEY_WAVE_SWIPE_UP = "wave_swipe_up"
+        private const val KEY_WAVE_SWIPE_DOWN = "wave_swipe_down"
+        private const val KEY_LOCALSEND_HOST = "localsend_host"
+        private const val KEY_LOCALSEND_PORT = "localsend_port"
+        private const val KEY_LOCALSEND_HTTPS = "localsend_https"
+        private const val KEY_LOCALSEND_FINGERPRINT = "localsend_fingerprint"
+        private const val KEY_LOCALSEND_PIN = "localsend_pin"
+        private const val KEY_LOCALSEND_ALIAS = "localsend_alias"
 
         private val gson = Gson()
         private val menuItemListType = object : TypeToken<List<QuickBallMenuItem>>() {}.type
@@ -136,14 +150,6 @@ class AppPreference private constructor(context: Context) {
         get() = prefs.getBoolean(KEY_GESTURE_ENABLED, AppDefaults.GESTURE_ENABLED)
         set(value) = prefs.edit { putBoolean(KEY_GESTURE_ENABLED, value) }
 
-    var doubleTapAction: String
-        get() = prefs.getString(KEY_DOUBLE_TAP, AppDefaults.DOUBLE_TAP_ACTION) ?: AppDefaults.DOUBLE_TAP_ACTION
-        set(value) = prefs.edit { putString(KEY_DOUBLE_TAP, value) }
-
-    var tripleTapAction: String
-        get() = prefs.getString(KEY_TRIPLE_TAP, AppDefaults.TRIPLE_TAP_ACTION) ?: AppDefaults.TRIPLE_TAP_ACTION
-        set(value) = prefs.edit { putString(KEY_TRIPLE_TAP, value) }
-
     var longPressAction: String
         get() = prefs.getString(KEY_LONG_PRESS, AppDefaults.LONG_PRESS_ACTION) ?: AppDefaults.LONG_PRESS_ACTION
         set(value) = prefs.edit { putString(KEY_LONG_PRESS, value) }
@@ -163,6 +169,63 @@ class AppPreference private constructor(context: Context) {
     var hapticIntensity: String
         get() = prefs.getString(KEY_HAPTIC_INTENSITY, AppDefaults.HAPTIC_INTENSITY) ?: AppDefaults.HAPTIC_INTENSITY
         set(value) = prefs.edit { putString(KEY_HAPTIC_INTENSITY, value) }
+
+    // -------------------- Wave edge bar --------------------
+    var isWaveEnabled: Boolean
+        get() = prefs.getBoolean(KEY_WAVE_ENABLED, AppDefaults.WAVE_ENABLED)
+        set(value) = prefs.edit { putBoolean(KEY_WAVE_ENABLED, value) }
+
+    var waveOnRight: Boolean
+        get() = prefs.getBoolean(KEY_WAVE_ON_RIGHT, AppDefaults.WAVE_ON_RIGHT)
+        set(value) = prefs.edit { putBoolean(KEY_WAVE_ON_RIGHT, value) }
+
+    /** Vertical centre of the bar as a fraction of the screen height. */
+    var waveYFraction: Float
+        get() = prefs.getFloat(KEY_WAVE_Y_FRACTION, AppDefaults.WAVE_Y_FRACTION)
+        set(value) = prefs.edit { putFloat(KEY_WAVE_Y_FRACTION, value) }
+
+    var waveHeight: Float
+        get() = prefs.getFloat(KEY_WAVE_HEIGHT, AppDefaults.WAVE_HEIGHT)
+            .coerceIn(AppDefaults.WAVE_HEIGHT_MIN, AppDefaults.WAVE_HEIGHT_MAX)
+        set(value) = prefs.edit { putFloat(KEY_WAVE_HEIGHT, value) }
+
+    var waveTouchWidth: Float
+        get() = prefs.getFloat(KEY_WAVE_TOUCH_WIDTH, AppDefaults.WAVE_TOUCH_WIDTH)
+        set(value) = prefs.edit { putFloat(KEY_WAVE_TOUCH_WIDTH, value) }
+
+    var waveThickness: Float
+        get() = prefs.getFloat(KEY_WAVE_THICKNESS, AppDefaults.WAVE_THICKNESS)
+        set(value) = prefs.edit { putFloat(KEY_WAVE_THICKNESS, value) }
+
+    var waveColor: Int
+        get() = prefs.getInt(KEY_WAVE_COLOR, AppDefaults.WAVE_COLOR)
+        set(value) = prefs.edit { putInt(KEY_WAVE_COLOR, value) }
+
+    var waveSwipeUpAction: String
+        get() = prefs.getString(KEY_WAVE_SWIPE_UP, AppDefaults.WAVE_SWIPE_UP_ACTION) ?: AppDefaults.WAVE_SWIPE_UP_ACTION
+        set(value) = prefs.edit { putString(KEY_WAVE_SWIPE_UP, value) }
+
+    var waveSwipeDownAction: String
+        get() = prefs.getString(KEY_WAVE_SWIPE_DOWN, AppDefaults.WAVE_SWIPE_DOWN_ACTION) ?: AppDefaults.WAVE_SWIPE_DOWN_ACTION
+        set(value) = prefs.edit { putString(KEY_WAVE_SWIPE_DOWN, value) }
+
+    var localSendTarget: LocalSendTarget
+        get() = LocalSendTarget(
+            host = prefs.getString(KEY_LOCALSEND_HOST, "") ?: "",
+            port = prefs.getInt(KEY_LOCALSEND_PORT, LocalSendTarget.DEFAULT_PORT),
+            https = prefs.getBoolean(KEY_LOCALSEND_HTTPS, true),
+            fingerprint = prefs.getString(KEY_LOCALSEND_FINGERPRINT, "") ?: "",
+            pin = prefs.getString(KEY_LOCALSEND_PIN, "") ?: "",
+            alias = prefs.getString(KEY_LOCALSEND_ALIAS, "") ?: ""
+        )
+        set(value) = prefs.edit {
+            putString(KEY_LOCALSEND_HOST, value.host.trim())
+            putInt(KEY_LOCALSEND_PORT, value.port)
+            putBoolean(KEY_LOCALSEND_HTTPS, value.https)
+            putString(KEY_LOCALSEND_FINGERPRINT, value.fingerprint.trim())
+            putString(KEY_LOCALSEND_PIN, value.pin)
+            putString(KEY_LOCALSEND_ALIAS, value.alias.trim())
+        }
 
     var isStickToEdgeEnabled: Boolean
         get() = prefs.getBoolean(KEY_STICK_TO_EDGE, true)

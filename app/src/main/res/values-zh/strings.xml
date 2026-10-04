@@ -108,6 +108,9 @@
     <string name="menu_notification">通知</string>
     <string name="menu_quick_settings">控制中心</string>
     <string name="menu_power_dialog">电源菜单</string>
+    <string name="menu_switch_last_app">切回上个应用</string>
+    <string name="menu_send_clipboard_localsend">剪贴板发送到 LocalSend</string>
+    <string name="toast_no_previous_app">没有可切换的上个应用</string>
 
     <!-- Color Picker -->
     <string name="choose_color">选择颜色</string>
@@ -143,8 +146,6 @@
     <string name="gesture_requirement_notice">当启用“吸附边缘”时手势在边缘药丸条上生效，或当启用“锁定悬浮球位置”时在悬浮球上生效。</string>
     <string name="enable_gestures_title">启用手势</string>
     <string name="enable_gestures_description">启用手势可能会稍微延迟菜单的打开。</string>
-    <string name="double_tap_title">双击</string>
-    <string name="triple_tap_title">三击</string>
     <string name="long_press_title">长按</string>
     <string name="swipe_up_title">向上滑动</string>
     <string name="swipe_down_title">向下滑动</string>

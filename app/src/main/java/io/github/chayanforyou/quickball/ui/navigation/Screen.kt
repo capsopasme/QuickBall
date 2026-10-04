@@ -7,5 +7,7 @@ enum class Screen {
     SelectShortcut,
     SelectApps,
     AutoHideSettings,
-    AdvancedSettings
+    AdvancedSettings,
+    LocalSendSettings,
+    WaveSettings
 }

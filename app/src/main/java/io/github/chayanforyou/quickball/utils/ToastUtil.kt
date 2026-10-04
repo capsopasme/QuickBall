@@ -23,7 +23,6 @@ import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.isVisible
 import io.github.chayanforyou.quickball.R
 import io.github.chayanforyou.quickball.domain.AppPreference
-import java.lang.ref.WeakReference
 
 object ToastUtil {
 
@@ -112,7 +111,14 @@ object ToastUtil {
             rootLayout.addView(seekBar)
         }
 
+        private var appliedBg: Int? = null
+        private var appliedFg: Int? = null
+
         fun updateColors(bgColor: Int, fgColor: Int) {
+            // Rebuilding the progress drawable on every toast is wasted work; only do it on change.
+            if (bgColor == appliedBg && fgColor == appliedFg) return
+            appliedBg = bgColor
+            appliedFg = fgColor
             (rootLayout.background as? GradientDrawable)?.setColor(bgColor)
             textView.setTextColor(fgColor)
             iconView.setColorFilter(fgColor)
@@ -145,7 +151,10 @@ object ToastUtil {
         }
     }
 
-    private var viewHolderRef: WeakReference<ToastViewHolder>? = null
+    // Strong reference on purpose: the holder only references application-context views, and a
+    // WeakReference let it be collected while its view was still attached to the WindowManager,
+    // which leaked that window and stacked a second toast window on top of it.
+    private var viewHolder: ToastViewHolder? = null
     private var windowManager: WindowManager? = null
     private var windowParams: WindowManager.LayoutParams? = null
     private var dismissRunnable: Runnable? = null
@@ -158,12 +167,12 @@ object ToastUtil {
     }
 
     private fun getOrCreateViewHolder(context: Context): ToastViewHolder {
-        var holder = viewHolderRef?.get()
+        var holder = viewHolder
         if (holder == null) {
             val appContext = context.applicationContext
 
             holder = ToastViewHolder(appContext)
-            viewHolderRef = WeakReference(holder)
+            viewHolder = holder
 
             windowParams = WindowManager.LayoutParams().apply {
                 type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -323,7 +332,13 @@ object ToastUtil {
             view.animate()
                 .alpha(0f)
                 .setDuration(250L)
-                .withEndAction { view.isVisible = false }
+                .withEndAction {
+                    view.isVisible = false
+                    // Detach the window once hidden so no idle overlay surface is kept around.
+                    if (view.isAttachedToWindow) {
+                        runCatching { windowManager?.removeView(view) }
+                    }
+                }
                 .start()
         }.also {
             dismissRunnable = it
@@ -331,15 +346,20 @@ object ToastUtil {
         }
     }
 
+    /**
+     * Must be called when the accessibility service goes away: the cached WindowManager belongs
+     * to that service instance (TYPE_ACCESSIBILITY_OVERLAY needs its token), so keeping it would
+     * leak the old service and make every later toast fail with a bad window token.
+     */
     fun destroy() {
         dismissRunnable?.let(handler::removeCallbacks)
-        viewHolderRef?.get()?.let { holder ->
-            runCatching {
-                holder.rootLayout.animate().cancel()
-                windowManager?.removeView(holder.rootLayout)
+        viewHolder?.let { holder ->
+            holder.rootLayout.animate().cancel()
+            if (holder.rootLayout.isAttachedToWindow) {
+                runCatching { windowManager?.removeView(holder.rootLayout) }
             }
         }
-        viewHolderRef?.clear()
+        viewHolder = null
         windowManager = null
         windowParams = null
         dismissRunnable = null

@@ -16,25 +16,35 @@ import android.provider.Settings
 import android.util.Log
 import android.view.KeyEvent
 import androidx.core.net.toUri
+import io.github.chayanforyou.quickball.core.RecentAppTracker
 import io.github.chayanforyou.quickball.domain.models.MenuAction
 import io.github.chayanforyou.quickball.domain.models.QuickBallMenuItem
+import io.github.chayanforyou.quickball.R
+import io.github.chayanforyou.quickball.localsend.ClipboardSendActivity
+import io.github.chayanforyou.quickball.localsend.LocalSendSender
 import io.github.chayanforyou.quickball.utils.BrightnessUtils
 import io.github.chayanforyou.quickball.utils.ToastUtil
 import io.github.chayanforyou.quickball.utils.performHapticFeedback
+import kotlin.math.roundToInt
 
 class QuickBallActionHandler(
     private val accessibilityService: AccessibilityService,
+    private val recentAppTracker: RecentAppTracker? = null,
     private val performStash: (() -> Unit)? = null
 ) {
 
     companion object {
         private const val TAG = "QuickBallActionHandler"
         private const val BRIGHTNESS_STEP_PERCENT = 10
+        private const val VOLUME_STEP_PERCENT = 10
     }
 
     private val context: Context = accessibilityService.applicationContext
     private val handler = Handler(Looper.getMainLooper())
     private var isTorchOn = false
+    // Flash-capable camera id; found once instead of querying every camera's characteristics
+    // (one binder round trip each, and the SM8650 exposes many logical/physical cameras).
+    private var torchCameraId: String? = null
 
     private val cameraManager: CameraManager by lazy {
         context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
@@ -52,8 +62,11 @@ class QuickBallActionHandler(
         }
     } else null
 
+    private val localSendNotifier: (String) -> Unit = { message -> showToast(message) }
+
     init {
         initTorch()
+        LocalSendSender.notifier = localSendNotifier
     }
 
     private fun initTorch() {
@@ -67,6 +80,7 @@ class QuickBallActionHandler(
     }
 
     fun cleanup() {
+        if (LocalSendSender.notifier === localSendNotifier) LocalSendSender.notifier = null
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && torchCallback != null) {
             try {
                 cameraManager.unregisterTorchCallback(torchCallback)
@@ -148,6 +162,8 @@ class QuickBallActionHandler(
             MenuAction.HOME -> performHomeAction()
             MenuAction.BACK -> performBackAction()
             MenuAction.RECENT -> performMenuAction()
+            MenuAction.SWITCH_LAST_APP -> switchToLastApp()
+            MenuAction.SEND_CLIPBOARD_LOCALSEND -> sendClipboardToLocalSend()
             MenuAction.NOTIFICATION -> performNotificationAction()
             MenuAction.QUICK_SETTINGS -> performQuickSettingsAction()
             MenuAction.POWER_DIALOG -> performPowerDialogAction()
@@ -181,29 +197,32 @@ class QuickBallActionHandler(
     }
 
     // -------------------- Volume Actions --------------------
-    private fun performVolumeUpAction() {
-        try {
-            audioManager.adjustStreamVolume(
-                AudioManager.STREAM_MUSIC,
-                AudioManager.ADJUST_RAISE,
-                AudioManager.FLAG_PLAY_SOUND
-            )
-            showVolumeToast()
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to perform volume up action", e)
-        }
-    }
+    private fun performVolumeUpAction() = stepVolume(up = true)
 
-    private fun performVolumeDownAction() {
+    private fun performVolumeDownAction() = stepVolume(up = false)
+
+    /**
+     * Moves media volume to the next 10 % mark of the stream's range. Volume is an integer
+     * index (often 0–15), so the 10 % marks are rounded to indices and the step goes to the
+     * nearest mark strictly above/below the current index, which never stalls.
+     */
+    private fun stepVolume(up: Boolean) {
         try {
-            audioManager.adjustStreamVolume(
-                AudioManager.STREAM_MUSIC,
-                AudioManager.ADJUST_LOWER,
-                AudioManager.FLAG_PLAY_SOUND
-            )
+            val stream = AudioManager.STREAM_MUSIC
+            val max = audioManager.getStreamMaxVolume(stream)
+            val current = audioManager.getStreamVolume(stream)
+            val marks = (0..100 step VOLUME_STEP_PERCENT).map { (it * max / 100.0).roundToInt() }
+            val target = if (up) {
+                marks.firstOrNull { it > current } ?: max
+            } else {
+                marks.lastOrNull { it < current } ?: 0
+            }
+            if (target != current) {
+                audioManager.setStreamVolume(stream, target, AudioManager.FLAG_PLAY_SOUND)
+            }
             showVolumeToast()
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to perform volume down action", e)
+            Log.e(TAG, "Failed to change volume (up=$up)", e)
         }
     }
 
@@ -404,10 +423,10 @@ class QuickBallActionHandler(
         }
 
         try {
-            val cameraId = cameraManager.cameraIdList.firstOrNull { id ->
+            val cameraId = torchCameraId ?: cameraManager.cameraIdList.firstOrNull { id ->
                 cameraManager.getCameraCharacteristics(id)
                     .get(CameraCharacteristics.FLASH_INFO_AVAILABLE) == true
-            } ?: return
+            }?.also { torchCameraId = it } ?: return
 
             val newState = !isTorchOn
             cameraManager.setTorchMode(cameraId, newState)
@@ -517,6 +536,54 @@ class QuickBallActionHandler(
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 }
             )
+        }
+    }
+
+    // -------------------- Switch To Last App --------------------
+    /**
+     * Brings the previously used app back to the front. Uses the launcher-style intent
+     * (NEW_TASK | RESET_TASK_IF_NEEDED), which resumes the existing task instead of
+     * starting a fresh one, so repeated use toggles between the last two apps.
+     */
+    private fun switchToLastApp() {
+        val target = recentAppTracker?.previousPackage
+        if (target.isNullOrBlank()) {
+            showToast(context.getString(R.string.toast_no_previous_app))
+            return
+        }
+        try {
+            val intent = accessibilityService.packageManager.getLaunchIntentForPackage(target)
+            if (intent == null) {
+                showToast(context.getString(R.string.toast_no_previous_app))
+                return
+            }
+            intent.addFlags(
+                Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
+            )
+            accessibilityService.startActivity(intent)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to switch to $target", e)
+        }
+    }
+
+    // -------------------- Send Clipboard To LocalSend --------------------
+    /**
+     * Reading the clipboard from the background is blocked since Android 10 unless the caller
+     * owns the focused window, so a transparent activity takes focus for a moment, reads the
+     * primary clip and hands it to [io.github.chayanforyou.quickball.localsend.LocalSendClient].
+     */
+    private fun sendClipboardToLocalSend() {
+        try {
+            accessibilityService.startActivity(
+                Intent(context, ClipboardSendActivity::class.java).addFlags(
+                    Intent.FLAG_ACTIVITY_NEW_TASK or
+                            Intent.FLAG_ACTIVITY_NO_ANIMATION or
+                            Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS or
+                            Intent.FLAG_ACTIVITY_MULTIPLE_TASK
+                )
+            )
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to start clipboard reader", e)
         }
     }
 
