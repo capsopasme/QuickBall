@@ -15,8 +15,8 @@ android {
         applicationId = "io.github.chayanforyou.quickball"
         minSdk = 21
         targetSdk = 37
-        versionCode = 23
-        versionName = "5.3.0"
+        versionCode = 24
+        versionName = "5.3.1"
         vectorDrawables.useSupportLibrary = true
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
