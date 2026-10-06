@@ -180,4 +180,15 @@
     <string name="rate_dialog_signature">Chayan</string>
     <string name="rate_dialog_leave_review">Leave a 5★ review</string>
     <string name="rate_dialog_email_me">Email me</string>
+
+    <!-- Small window (freeform) -->
+    <string name="menu_freeform">Small Window</string>
+    <string name="toast_freeform_no_app">No app to open as a small window</string>
+    <string name="toast_freeform_no_root">Small windows need root. Grant QuickBall root access in your root manager</string>
+    <string name="toast_freeform_failed">Couldn\'t open the small window</string>
+    <string name="toast_freeform_unsupported">Can\'t open as a small window: the app doesn\'t support it, or \"Enable freeform windows\" is off in Developer options</string>
+    <string name="freeform_header_title">Small window</string>
+    <string name="freeform_launch_apps_title">Open shortcut apps as small windows</string>
+    <string name="freeform_launch_apps_description">App shortcuts in the menu open in a floating small window. Needs root and freeform windows enabled in Developer options</string>
+    <string name="freeform_controls_description">Small window controls</string>
 </resources>

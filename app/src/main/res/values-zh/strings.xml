@@ -180,4 +180,15 @@
     <string name="rate_dialog_signature">Chayan</string>
     <string name="rate_dialog_leave_review">留下 5★ 好评</string>
     <string name="rate_dialog_email_me">发送邮件</string>
+
+    <!-- Small window (freeform) -->
+    <string name="menu_freeform">转为小窗</string>
+    <string name="toast_freeform_no_app">没有可以转为小窗的应用</string>
+    <string name="toast_freeform_no_root">小窗需要 root，请在 root 管理器中给 QuickBall 授权</string>
+    <string name="toast_freeform_failed">小窗打开失败</string>
+    <string name="toast_freeform_unsupported">无法以小窗打开：应用不支持，或未在开发者选项中开启“启用可自由调整的窗口”</string>
+    <string name="freeform_header_title">小窗</string>
+    <string name="freeform_launch_apps_title">以小窗打开快捷方式中的应用</string>
+    <string name="freeform_launch_apps_description">菜单里的应用快捷方式以悬浮小窗打开。需要 root，并在开发者选项中开启自由窗口</string>
+    <string name="freeform_controls_description">小窗控制栏</string>
 </resources>

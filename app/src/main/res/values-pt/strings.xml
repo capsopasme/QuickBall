@@ -180,4 +180,15 @@
     <string name="rate_dialog_signature">Chayan</string>
     <string name="rate_dialog_leave_review">Deixar avaliação 5★</string>
     <string name="rate_dialog_email_me">Enviar e-mail</string>
+
+    <!-- Small window (freeform) -->
+    <string name="menu_freeform">Janela pequena</string>
+    <string name="toast_freeform_no_app">Nenhum app para abrir como janela pequena</string>
+    <string name="toast_freeform_no_root">Janelas pequenas precisam de root. Conceda acesso root ao QuickBall no seu gerenciador de root</string>
+    <string name="toast_freeform_failed">Não foi possível abrir a janela pequena</string>
+    <string name="toast_freeform_unsupported">Não é possível abrir como janela pequena: o app não é compatível ou \"Ativar janelas de formato livre\" está desativado nas Opções do desenvolvedor</string>
+    <string name="freeform_header_title">Janela pequena</string>
+    <string name="freeform_launch_apps_title">Abrir apps dos atalhos como janela pequena</string>
+    <string name="freeform_launch_apps_description">Os atalhos de apps do menu abrem em uma janela pequena flutuante. Requer root e janelas de formato livre ativadas nas Opções do desenvolvedor</string>
+    <string name="freeform_controls_description">Controles da janela pequena</string>
 </resources>

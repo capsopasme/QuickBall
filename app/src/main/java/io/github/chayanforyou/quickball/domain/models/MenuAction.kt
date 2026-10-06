@@ -20,6 +20,8 @@ enum class MenuAction(
     RECENT(R.drawable.ic_recent, R.string.menu_recent),
     @SerializedName("SWITCH_LAST_APP")
     SWITCH_LAST_APP(R.drawable.ic_switch_app, R.string.menu_switch_last_app),
+    @SerializedName("FREEFORM_CURRENT")
+    FREEFORM_CURRENT(R.drawable.ic_freeform, R.string.menu_freeform),
 
     // Media & Sound
     @SerializedName("VOLUME_UP")

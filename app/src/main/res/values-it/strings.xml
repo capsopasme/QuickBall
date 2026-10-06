@@ -180,4 +180,15 @@
     <string name="rate_dialog_signature">Chayan</string>
     <string name="rate_dialog_leave_review">Lascia una recensione 5★</string>
     <string name="rate_dialog_email_me">Inviami un\'email</string>
+
+    <!-- Small window (freeform) -->
+    <string name="menu_freeform">Finestra piccola</string>
+    <string name="toast_freeform_no_app">Nessuna app da aprire come finestra piccola</string>
+    <string name="toast_freeform_no_root">Le finestre piccole richiedono il root. Concedi l\'accesso root a QuickBall nel gestore root</string>
+    <string name="toast_freeform_failed">Impossibile aprire la finestra piccola</string>
+    <string name="toast_freeform_unsupported">Impossibile aprire come finestra piccola: l\'app non lo supporta oppure \"Attiva finestre a forma libera\" è disattivato nelle Opzioni sviluppatore</string>
+    <string name="freeform_header_title">Finestra piccola</string>
+    <string name="freeform_launch_apps_title">Apri le app delle scorciatoie come finestra piccola</string>
+    <string name="freeform_launch_apps_description">Le scorciatoie delle app nel menu si aprono in una piccola finestra mobile. Richiede il root e le finestre a forma libera attive nelle Opzioni sviluppatore</string>
+    <string name="freeform_controls_description">Controlli della finestra piccola</string>
 </resources>

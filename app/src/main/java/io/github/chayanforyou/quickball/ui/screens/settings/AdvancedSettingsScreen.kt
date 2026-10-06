@@ -95,6 +95,7 @@ fun AdvancedSettingsScreen(
     var activeGestureBottomSheet by remember { mutableStateOf<PillGesture?>(null) }
     val prefs = remember { AppPreference.getInstance(context) }
     var iosVolumeHud by remember { mutableStateOf(prefs.isIosVolumeHud) }
+    var freeformLaunch by remember { mutableStateOf(prefs.isFreeformLaunchEnabled) }
 
     Scaffold(
         modifier = modifier,
@@ -244,6 +245,35 @@ fun AdvancedSettingsScreen(
                         steps = 39,
                         onValueChange = { viewModel.setMenuRadius(it) },
                         onReset = { viewModel.resetMenuRadius() }
+                    )
+                }
+            }
+
+            // Small Window Header & Card
+            Text(
+                text = stringResource(R.string.freeform_header_title),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(start = 4.dp, top = 12.dp)
+            )
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = AppCardDefaults.cardColors()
+            ) {
+                Column(
+                    modifier = Modifier.padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(20.dp)
+                ) {
+                    SettingSwitchRow(
+                        title = stringResource(R.string.freeform_launch_apps_title),
+                        subtitle = stringResource(R.string.freeform_launch_apps_description),
+                        checked = freeformLaunch,
+                        onCheckedChange = { value ->
+                            freeformLaunch = value
+                            prefs.isFreeformLaunchEnabled = value
+                        }
                     )
                 }
             }

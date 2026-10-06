@@ -180,4 +180,15 @@
     <string name="rate_dialog_signature">Chayan</string>
     <string name="rate_dialog_leave_review">5★ रिव्यू दें</string>
     <string name="rate_dialog_email_me">मुझे ईमेल करें</string>
+
+    <!-- Small window (freeform) -->
+    <string name="menu_freeform">छोटी विंडो</string>
+    <string name="toast_freeform_no_app">छोटी विंडो में खोलने के लिए कोई ऐप नहीं है</string>
+    <string name="toast_freeform_no_root">छोटी विंडो के लिए रूट चाहिए। अपने रूट मैनेजर में QuickBall को रूट एक्सेस दें</string>
+    <string name="toast_freeform_failed">छोटी विंडो नहीं खुल सकी</string>
+    <string name="toast_freeform_unsupported">छोटी विंडो में नहीं खुल सकता: ऐप इसे सपोर्ट नहीं करता, या डेवलपर विकल्पों में \"फ़्रीफ़ॉर्म विंडो चालू करें\" बंद है</string>
+    <string name="freeform_header_title">छोटी विंडो</string>
+    <string name="freeform_launch_apps_title">शॉर्टकट ऐप्स को छोटी विंडो में खोलें</string>
+    <string name="freeform_launch_apps_description">मेन्यू के ऐप शॉर्टकट एक तैरती छोटी विंडो में खुलते हैं। रूट और डेवलपर विकल्पों में फ़्रीफ़ॉर्म विंडो चालू होना ज़रूरी है</string>
+    <string name="freeform_controls_description">छोटी विंडो के नियंत्रण</string>
 </resources>
