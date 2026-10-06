@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="toast_need_write_settings">请为 QuickBall 开启「修改系统设置」权限</string>
+    <string name="toast_write_settings_failed">无法打开「修改系统设置」权限页面</string>
+    <string name="toast_need_dnd_access">请为 QuickBall 开启「勿扰权限」</string>
+    <string name="toast_dnd_on">勿扰模式已开启</string>
+    <string name="toast_dnd_off">勿扰模式已关闭</string>
+    <string name="toast_vibrate_on">振动模式已开启</string>
+    <string name="toast_vibrate_off">振动模式已关闭</string>
+    <string name="toast_torch_on">手电筒已打开</string>
+    <string name="toast_torch_off">手电筒已关闭</string>
+    <string name="toast_auto_rotate_on">自动旋转已开启</string>
+    <string name="toast_auto_rotate_off">自动旋转已关闭</string>
+    <string name="toast_volume_level">音量：%1$d%%</string>
+    <string name="toast_brightness_level">亮度：%1$d%%</string>
+    <string name="clear_search">清除搜索</string>
+</resources>

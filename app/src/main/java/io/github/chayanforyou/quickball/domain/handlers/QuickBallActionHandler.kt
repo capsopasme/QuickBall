@@ -154,9 +154,9 @@ class QuickBallActionHandler(
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 }
             )
-            showToast("Allow 'Modify system settings' permission", performHaptic = true)
+            showToast(context.getString(R.string.toast_need_write_settings), performHaptic = true)
         } catch (_: Exception) {
-            showToast("Could not request system settings permission")
+            showToast(context.getString(R.string.toast_write_settings_failed))
         }
     }
 
@@ -396,7 +396,7 @@ class QuickBallActionHandler(
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             runDelayed { context.startActivity(intent) }
-            showToast("Grant Do Not Disturb access")
+            showToast(context.getString(R.string.toast_need_dnd_access))
             return
         }
 
@@ -411,17 +411,17 @@ class QuickBallActionHandler(
                 audioManager.ringerMode = newMode
                 showToast(getDndModeText(newMode))
             } catch (e: SecurityException) {
+                // Leaving silent mode changes Do Not Disturb, which needs policy access.
                 Log.e(TAG, "Failed to toggle DND mode", e)
+                showToast(context.getString(R.string.toast_need_dnd_access))
             }
         }
     }
 
     private fun getDndModeText(mode: Int): String {
-        return when (mode) {
-            AudioManager.RINGER_MODE_SILENT -> "Do Not Disturb ON"
-            AudioManager.RINGER_MODE_NORMAL -> "Do Not Disturb OFF"
-            else -> "Do Not Disturb OFF"
-        }
+        return context.getString(
+            if (mode == AudioManager.RINGER_MODE_SILENT) R.string.toast_dnd_on else R.string.toast_dnd_off
+        )
     }
 
     // -------------------- Vibration Mode --------------------
@@ -437,17 +437,17 @@ class QuickBallActionHandler(
                 audioManager.ringerMode = newMode
                 showToast(getVibrationModeText(newMode))
             } catch (e: SecurityException) {
+                // Leaving silent mode changes Do Not Disturb, which needs policy access.
                 Log.e(TAG, "Failed to toggle vibrate mode", e)
+                showToast(context.getString(R.string.toast_need_dnd_access))
             }
         }
     }
 
     private fun getVibrationModeText(mode: Int): String {
-        return when (mode) {
-            AudioManager.RINGER_MODE_VIBRATE -> "Vibration mode ON"
-            AudioManager.RINGER_MODE_NORMAL -> "Vibration mode OFF"
-            else -> "Vibration mode OFF"
-        }
+        return context.getString(
+            if (mode == AudioManager.RINGER_MODE_VIBRATE) R.string.toast_vibrate_on else R.string.toast_vibrate_off
+        )
     }
 
     // -------------------- Torch --------------------
@@ -465,7 +465,7 @@ class QuickBallActionHandler(
 
             val newState = !isTorchOn
             cameraManager.setTorchMode(cameraId, newState)
-            showToast(if (newState) "Torch ON" else "Torch OFF")
+            showToast(context.getString(if (newState) R.string.toast_torch_on else R.string.toast_torch_off))
         } catch (e: Exception) {
             Log.e(TAG, "Torch toggle failed", e)
         }
@@ -560,7 +560,7 @@ class QuickBallActionHandler(
             Settings.System.ACCELEROMETER_ROTATION,
             newValue
         )
-        showToast(if (newValue == 1) "Auto-rotate ON" else "Auto-rotate OFF")
+        showToast(context.getString(if (newValue == 1) R.string.toast_auto_rotate_on else R.string.toast_auto_rotate_off))
     }
 
     // -------------------- Airplane Mode --------------------
@@ -682,7 +682,7 @@ class QuickBallActionHandler(
                 ?.let { intent ->
                     performStash?.invoke()
                     runDelayed { accessibilityService.startActivity(intent) }
-                } ?: showToast("App not found or cannot be launched")
+                } ?: showToast(context.getString(R.string.toast_app_not_found))
         } catch (e: Exception) {
             Log.e(TAG, "Failed to launch app: $packageName", e)
         }

@@ -223,7 +223,8 @@ object ToastUtil {
         maxVolume: Int,
         onVolumeChanged: ((Int) -> Unit)?
     ) {
-        fun volumeText(vol: Int) = "Volume: ${calculatePercentage(vol, maxVolume)}%"
+        fun volumeText(vol: Int) =
+            context.getString(R.string.toast_volume_level, calculatePercentage(vol, maxVolume))
         showToastInternal(
             context = context,
             type = ToastType.VOLUME,
@@ -242,7 +243,7 @@ object ToastUtil {
         percent: Int,
         onBrightnessChanged: ((Int) -> Unit)?
     ) {
-        fun brightnessText(p: Int) = "Brightness: $p%"
+        fun brightnessText(p: Int) = context.getString(R.string.toast_brightness_level, p)
         showToastInternal(
             context = context,
             type = ToastType.BRIGHTNESS,

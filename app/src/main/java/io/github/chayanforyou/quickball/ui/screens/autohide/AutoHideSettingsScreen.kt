@@ -144,12 +144,12 @@ fun AutoHideSettingsScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 12.dp),
-                placeholder = { Text("Search apps...") },
+                placeholder = { Text(stringResource(R.string.gesture_search_apps)) },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                 trailingIcon = {
                     if (searchQuery.isNotEmpty()) {
                         IconButton(onClick = { searchQuery = "" }) {
-                            Icon(Icons.Default.Close, contentDescription = "Clear search")
+                            Icon(Icons.Default.Close, contentDescription = stringResource(R.string.clear_search))
                         }
                     }
                 },

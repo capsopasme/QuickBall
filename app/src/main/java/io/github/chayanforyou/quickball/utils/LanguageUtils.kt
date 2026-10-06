@@ -30,6 +30,9 @@ object LanguageUtils {
 
     fun getLocalizedContext(context: Context): Context {
         val languageCode = AppPreference.getInstance(context).language
+        // Never picked in the app: follow the system (or per-app) language instead of forcing
+        // English, which left the settings in English while the overlays used the system language.
+        if (languageCode.isBlank()) return context
         val locale = Locale.forLanguageTag(languageCode)
         Locale.setDefault(locale)
 
@@ -67,7 +70,16 @@ object LanguageUtils {
                 return Language.fromCode(tag)
             }
         }
-        return Language.fromCode(AppPreference.getInstance(context).language)
+        val saved = AppPreference.getInstance(context).language
+        if (saved.isNotBlank()) return Language.fromCode(saved)
+        val config = context.resources.configuration
+        val system = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            config.locales.takeIf { !it.isEmpty }?.get(0)
+        } else {
+            @Suppress("DEPRECATION")
+            config.locale
+        }
+        return Language.fromCode(system?.language)
     }
 
     fun getAllLanguages(): List<Language> = Language.entries

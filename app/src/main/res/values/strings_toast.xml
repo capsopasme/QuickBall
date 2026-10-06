@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Overlay toasts shown by ball actions -->
+    <string name="toast_need_write_settings">Allow \"Modify system settings\" for QuickBall</string>
+    <string name="toast_write_settings_failed">Could not open the \"Modify system settings\" page</string>
+    <string name="toast_need_dnd_access">Grant Do Not Disturb access to QuickBall</string>
+    <string name="toast_dnd_on">Do Not Disturb on</string>
+    <string name="toast_dnd_off">Do Not Disturb off</string>
+    <string name="toast_vibrate_on">Vibration mode on</string>
+    <string name="toast_vibrate_off">Vibration mode off</string>
+    <string name="toast_torch_on">Torch on</string>
+    <string name="toast_torch_off">Torch off</string>
+    <string name="toast_auto_rotate_on">Auto-rotate on</string>
+    <string name="toast_auto_rotate_off">Auto-rotate off</string>
+    <string name="toast_volume_level">Volume: %1$d%%</string>
+    <string name="toast_brightness_level">Brightness: %1$d%%</string>
+    <string name="clear_search">Clear search</string>
+</resources>
