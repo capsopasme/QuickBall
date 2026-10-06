@@ -180,4 +180,15 @@
     <string name="rate_dialog_signature">Chayan</string>
     <string name="rate_dialog_leave_review">5★-Bewertung abgeben</string>
     <string name="rate_dialog_email_me">E-Mail schreiben</string>
+
+    <!-- Small window (freeform) -->
+    <string name="menu_freeform">Kleines Fenster</string>
+    <string name="toast_freeform_no_app">Keine App, die als kleines Fenster geöffnet werden kann</string>
+    <string name="toast_freeform_no_root">Kleine Fenster benötigen Root. Erteile QuickBall Root-Zugriff im Root-Manager</string>
+    <string name="toast_freeform_failed">Kleines Fenster konnte nicht geöffnet werden</string>
+    <string name="toast_freeform_unsupported">Kann nicht als kleines Fenster geöffnet werden: Die App unterstützt es nicht oder „Freiform-Fenster aktivieren“ ist in den Entwickleroptionen aus</string>
+    <string name="freeform_header_title">Kleines Fenster</string>
+    <string name="freeform_launch_apps_title">Verknüpfungs-Apps als kleines Fenster öffnen</string>
+    <string name="freeform_launch_apps_description">App-Verknüpfungen im Menü öffnen sich in einem schwebenden kleinen Fenster. Benötigt Root und aktivierte Freiform-Fenster in den Entwickleroptionen</string>
+    <string name="freeform_controls_description">Steuerung des kleinen Fensters</string>
 </resources>

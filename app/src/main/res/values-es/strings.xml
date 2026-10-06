@@ -180,4 +180,15 @@
     <string name="rate_dialog_signature">Chayan</string>
     <string name="rate_dialog_leave_review">Dejar una reseña de 5★</string>
     <string name="rate_dialog_email_me">Enviarme un correo</string>
+
+    <!-- Small window (freeform) -->
+    <string name="menu_freeform">Ventana pequeña</string>
+    <string name="toast_freeform_no_app">No hay ninguna app para abrir como ventana pequeña</string>
+    <string name="toast_freeform_no_root">Las ventanas pequeñas necesitan root. Concede acceso root a QuickBall en tu gestor de root</string>
+    <string name="toast_freeform_failed">No se pudo abrir la ventana pequeña</string>
+    <string name="toast_freeform_unsupported">No se puede abrir como ventana pequeña: la app no lo admite o «Habilitar ventanas de forma libre» está desactivado en Opciones para desarrolladores</string>
+    <string name="freeform_header_title">Ventana pequeña</string>
+    <string name="freeform_launch_apps_title">Abrir apps de accesos directos como ventana pequeña</string>
+    <string name="freeform_launch_apps_description">Los accesos directos de apps del menú se abren en una ventana pequeña flotante. Requiere root y ventanas de forma libre activadas en Opciones para desarrolladores</string>
+    <string name="freeform_controls_description">Controles de la ventana pequeña</string>
 </resources>

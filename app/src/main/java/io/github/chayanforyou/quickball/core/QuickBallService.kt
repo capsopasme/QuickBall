@@ -28,6 +28,7 @@ import io.github.chayanforyou.quickball.domain.models.GestureBinding
 import io.github.chayanforyou.quickball.domain.models.MenuAction
 import io.github.chayanforyou.quickball.domain.handlers.QuickBallActionHandler
 import io.github.chayanforyou.quickball.domain.models.QuickBallMenuItem
+import io.github.chayanforyou.quickball.freeform.FreeformController
 import io.github.chayanforyou.quickball.ui.floating.GestureListener
 import io.github.chayanforyou.quickball.ui.floating.FloatTouchView
 import io.github.chayanforyou.quickball.ui.floating.FloatPanelView
@@ -88,6 +89,7 @@ class QuickBallService : AccessibilityService() {
     private var waveParams: WindowManager.LayoutParams? = null
     private var actionHandler: QuickBallActionHandler? = null
     private var partialScreenshot: PartialScreenshot? = null
+    private var freeform: FreeformController? = null
 
     // True while a partial screenshot hides the overlays (capture + crop UI).
     private var isHiddenForCapture = false
@@ -235,6 +237,9 @@ class QuickBallService : AccessibilityService() {
         isHiddenForCapture = false
         actionHandler?.cleanup()
         actionHandler = null
+        // Its daemon turns any small windows back into normal apps.
+        freeform?.destroy()
+        freeform = null
         ToastUtil.destroy()
         isExpanded = false
         isStashed = false
@@ -258,6 +263,9 @@ class QuickBallService : AccessibilityService() {
 
         val screenshot = PartialScreenshot(this, captureHost)
         partialScreenshot = screenshot
+        val smallWindows = if (FreeformController.isSupported) FreeformController(this) else null
+        freeform = smallWindows
+        smallWindows?.onScreenStateChanged(isLocked)
         actionHandler = QuickBallActionHandler(
             accessibilityService = this,
             recentAppTracker = recentAppTracker,
@@ -268,6 +276,7 @@ class QuickBallService : AccessibilityService() {
             // Posted: the menu window is removed for the capture and must not go away
             // inside its own click dispatch.
             startPartialScreenshot = { stashHandler.post { screenshot.start() } },
+            freeform = smallWindows,
         )
 
         createFabWindow()
@@ -276,6 +285,11 @@ class QuickBallService : AccessibilityService() {
     /* -------------------- Accessibility & System Events -------------------- */
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
+        // Only subscribed while a small window is shown.
+        if (event.eventType == AccessibilityEvent.TYPE_WINDOWS_CHANGED) {
+            freeform?.onAccessibilityEvent(event)
+            return
+        }
         recentAppTracker.onAccessibilityEvent(event)
 
         val packageName = event.packageName?.toString() ?: return
@@ -307,6 +321,7 @@ class QuickBallService : AccessibilityService() {
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         actionHandler?.onConfigurationChanged(newConfig)
+        freeform?.onConfigurationChanged()
         refreshBallVisibility()
         recalculatePosition()
     }
@@ -874,6 +889,7 @@ class QuickBallService : AccessibilityService() {
         isExpanded = true
         fabView?.setExpanded(true)
         stopInactivityTimer()
+        prewarmSmallWindows()
 
         val existingView = menuView
         val existingParams = menuParams
@@ -973,6 +989,18 @@ class QuickBallService : AccessibilityService() {
         return prefs.selectedMenuItems
     }
 
+    /**
+     * Starting the small-window daemon takes a moment (su + a JVM); begin while the menu
+     * animates in, but only when this menu can actually open a small window.
+     */
+    private fun prewarmSmallWindows() {
+        val smallWindows = freeform ?: return
+        val items = getMenuItems()
+        val needed = items.any { it.action == MenuAction.FREEFORM_CURRENT } ||
+                (prefs.isFreeformLaunchEnabled && items.any { it.action == MenuAction.LAUNCH_APP })
+        if (needed) smallWindows.prewarm()
+    }
+
     /* -------------------- Partial Screenshot -------------------- */
 
     private val captureHost = object : PartialScreenshot.Host {
@@ -981,12 +1009,14 @@ class QuickBallService : AccessibilityService() {
             stopInactivityTimer()
             removeMenuWindow()
             actionHandler?.dismissTransientUi()
+            freeform?.setHiddenForCapture(true)
             applyCaptureVisibility()
         }
 
         override fun restoreOverlaysAfterCapture() {
             if (!isHiddenForCapture) return
             isHiddenForCapture = false
+            freeform?.setHiddenForCapture(false)
             applyCaptureVisibility()
             resetInactivityTimer()
         }
@@ -1097,8 +1127,11 @@ class QuickBallService : AccessibilityService() {
     private val screenReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == Intent.ACTION_SCREEN_OFF) {
+                freeform?.onScreenStateChanged(hidden = true)
                 onScreenOff()
             } else {
+                // SCREEN_ON may still show the keyguard; USER_PRESENT follows the unlock.
+                freeform?.onScreenStateChanged(hidden = isLocked)
                 refreshBallVisibility()
             }
         }

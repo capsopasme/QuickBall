@@ -24,3 +24,9 @@
 -keepclassmembers class io.github.chayanforyou.quickball.domain.models.** { *; }
 -keepclassmembers enum io.github.chayanforyou.quickball.domain.models.** { *; }
 
+
+# Small-window root daemon: started by class name through app_process, and its task listener
+# overrides hidden framework callbacks R8 can't see (android.app.TaskStackListener is only a
+# compile-time stub from :hidden-api).
+-keep class io.github.chayanforyou.quickball.freeform.server.** { *; }
+-dontwarn android.app.TaskStackListener

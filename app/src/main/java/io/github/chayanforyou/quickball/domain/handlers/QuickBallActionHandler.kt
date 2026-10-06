@@ -23,6 +23,7 @@ import io.github.chayanforyou.quickball.core.VolumeHud
 import io.github.chayanforyou.quickball.domain.AppPreference
 import io.github.chayanforyou.quickball.domain.models.MenuAction
 import io.github.chayanforyou.quickball.domain.models.QuickBallMenuItem
+import io.github.chayanforyou.quickball.freeform.FreeformController
 import io.github.chayanforyou.quickball.R
 import io.github.chayanforyou.quickball.localsend.ClipboardSendActivity
 import io.github.chayanforyou.quickball.localsend.LocalSendSender
@@ -36,6 +37,8 @@ class QuickBallActionHandler(
     private val recentAppTracker: RecentAppTracker? = null,
     private val performStash: (() -> Unit)? = null,
     private val startPartialScreenshot: (() -> Unit)? = null,
+    /** Small windows; null where unsupported (before Android 13). */
+    private val freeform: FreeformController? = null,
 ) {
 
     companion object {
@@ -187,6 +190,7 @@ class QuickBallActionHandler(
             MenuAction.BACK -> performBackAction()
             MenuAction.RECENT -> performMenuAction()
             MenuAction.SWITCH_LAST_APP -> switchToLastApp()
+            MenuAction.FREEFORM_CURRENT -> openCurrentAsSmallWindow()
             MenuAction.SEND_CLIPBOARD_LOCALSEND -> sendClipboardToLocalSend()
             MenuAction.PHONE_ASSISTANT -> launchPhoneAssistant()
             MenuAction.NOTIFICATION -> performNotificationAction()
@@ -675,6 +679,28 @@ class QuickBallActionHandler(
             return
         }
 
+        val smallWindows = freeform
+        if (smallWindows != null && AppPreference.getInstance(context).isFreeformLaunchEnabled) {
+            performStash?.invoke()
+            smallWindows.launchApp(packageName) { launchFullscreen(packageName) }
+            return
+        }
+        launchFullscreen(packageName)
+    }
+
+    // -------------------- Small Window --------------------
+    /** Turns the app in front into a HyperOS-style small window (needs root). */
+    private fun openCurrentAsSmallWindow() {
+        val smallWindows = freeform
+        if (smallWindows == null) {
+            showToast(context.getString(R.string.toast_freeform_unsupported))
+            return
+        }
+        performStash?.invoke()
+        smallWindows.openCurrentApp()
+    }
+
+    private fun launchFullscreen(packageName: String) {
         try {
             accessibilityService.packageManager
                 .getLaunchIntentForPackage(packageName)

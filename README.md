@@ -43,6 +43,13 @@ It stays visible above all apps, giving you instant system control from anywhere
   Drag and place the ball anywhere on the screen.
 - **Auto Edge Snap**<br>
   Snaps to the nearest screen edge when released.
+- **Small Windows (root, Android 13+)**<br>
+  HyperOS-style floating windows built on the system's freeform mode: the *Small Window* action
+  turns the app in front into one, and app shortcuts can open as one (Advanced settings).
+  The window keeps the phone's layout at a lower density, stays on top, and has a caption bar
+  (drag to move, flick up to minimize into a bubble, maximize, close) and corner grips to
+  zoom. Requires root (a small daemon started through `su`) and *Enable freeform windows* in
+  Developer options.
 - **Multi-Language Support**<br>
   Available in:
   * English
@@ -76,6 +83,8 @@ Video source [HowToMen](https://youtu.be/XkdY3jvGOgM?t=44)
 
 QuickBall requires Accessibility and Device Admin permissions to perform system actions.
 These permissions are only used for QuickBall functionality.
+Small windows additionally use root: QuickBall starts a daemon with `su` that only talks to
+QuickBall through a private pipe and exits when QuickBall stops using it.
 The app does not access, store, or monitor any personal data.
 
 ## Contributing

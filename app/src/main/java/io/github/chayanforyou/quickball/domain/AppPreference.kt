@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import android.util.Log
 import androidx.core.content.edit
 import com.google.gson.Gson
+import io.github.chayanforyou.quickball.freeform.FreeformGeometry
 import io.github.chayanforyou.quickball.domain.models.MenuAction
 import io.github.chayanforyou.quickball.domain.models.QuickBallMenuItem
 import io.github.chayanforyou.quickball.localsend.LocalSendTarget
@@ -64,6 +65,12 @@ class AppPreference private constructor(context: Context) {
         private const val KEY_LOCALSEND_FINGERPRINT = "localsend_fingerprint"
         private const val KEY_LOCALSEND_PIN = "localsend_pin"
         private const val KEY_LOCALSEND_ALIAS = "localsend_alias"
+        private const val KEY_FREEFORM_LAUNCH_APPS = "freeform_launch_apps"
+        private const val KEY_FREEFORM_SCALE = "freeform_scale"
+        private const val KEY_FREEFORM_CENTER_X = "freeform_center_x"
+        private const val KEY_FREEFORM_TOP = "freeform_top"
+        private const val KEY_FREEFORM_BUBBLE_ON_RIGHT = "freeform_bubble_on_right"
+        private const val KEY_FREEFORM_BUBBLE_Y = "freeform_bubble_y"
 
         private val gson = Gson()
 
@@ -230,6 +237,41 @@ class AppPreference private constructor(context: Context) {
             putString(KEY_LOCALSEND_PIN, value.pin)
             putString(KEY_LOCALSEND_ALIAS, value.alias.trim())
         }
+
+    // -------------------- Small window (freeform) --------------------
+    /** App shortcuts in the menu open as small windows. */
+    var isFreeformLaunchEnabled: Boolean
+        get() = prefs.getBoolean(KEY_FREEFORM_LAUNCH_APPS, false)
+        set(value) = prefs.edit { putBoolean(KEY_FREEFORM_LAUNCH_APPS, value) }
+
+    /** Last window width as a fraction of the display's short side. */
+    val freeformScale: Float
+        get() = prefs.getFloat(KEY_FREEFORM_SCALE, FreeformGeometry.DEFAULT_SCALE)
+
+    /** Last window centre, as a fraction of the screen width. */
+    val freeformCenterX: Float
+        get() = prefs.getFloat(KEY_FREEFORM_CENTER_X, FreeformGeometry.DEFAULT_CENTER_X)
+
+    /** Last window top edge, as a fraction of the screen height. */
+    val freeformTop: Float
+        get() = prefs.getFloat(KEY_FREEFORM_TOP, FreeformGeometry.DEFAULT_TOP)
+
+    fun saveFreeformWindow(scale: Float, centerX: Float, top: Float) {
+        prefs.edit {
+            putFloat(KEY_FREEFORM_SCALE, scale)
+            putFloat(KEY_FREEFORM_CENTER_X, centerX)
+            putFloat(KEY_FREEFORM_TOP, top)
+        }
+    }
+
+    var freeformBubbleOnRight: Boolean
+        get() = prefs.getBoolean(KEY_FREEFORM_BUBBLE_ON_RIGHT, true)
+        set(value) = prefs.edit { putBoolean(KEY_FREEFORM_BUBBLE_ON_RIGHT, value) }
+
+    /** Top of the bubble stack, as a fraction of the screen height. */
+    var freeformBubbleY: Float
+        get() = prefs.getFloat(KEY_FREEFORM_BUBBLE_Y, 0.3f)
+        set(value) = prefs.edit { putFloat(KEY_FREEFORM_BUBBLE_Y, value) }
 
     var isStickToEdgeEnabled: Boolean
         get() = prefs.getBoolean(KEY_STICK_TO_EDGE, true)
