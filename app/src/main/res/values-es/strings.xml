@@ -95,6 +95,7 @@
     <string name="menu_previous_track">Pista anterior</string>
     <string name="menu_sys_volume_bar">Barra de volumen del sistema</string>
     <string name="menu_sys_volume_panel">Abrir panel de volumen</string>
+    <string name="menu_volume_mixer">Panel de volumen flotante</string>
     
     <!-- Connectivity -->
     <string name="menu_wifi">Alternar Wi-Fi</string>
@@ -104,6 +105,7 @@
     
     <!-- Utilities -->
     <string name="menu_screenshot">Captura de pantalla</string>
+    <string name="menu_partial_screenshot">Captura parcial</string>
     <string name="menu_lock_screen">Bloquear pantalla</string>
     <string name="menu_notification">Notificación</string>
     <string name="menu_quick_settings">Centro de control</string>
@@ -119,7 +121,7 @@
     <string name="gesture_search_apps">Buscar apps…</string>
     <string name="gesture_app_missing">App no instalada (%1$s)</string>
     <string name="ios_volume_hud_title">Animación de volumen estilo iOS</string>
-    <string name="ios_volume_hud_description">Subir/bajar volumen muestra una cápsula animada en la cámara en lugar del aviso simple</string>
+    <string name="ios_volume_hud_description">Subir/bajar volumen muestra una cápsula animada bajo la barra de estado en lugar del aviso simple. Arrástrala para ajustar; tócala o deslízala hacia abajo para ver todos los controles</string>
 
     <!-- Color Picker -->
     <string name="choose_color">Elegir color</string>

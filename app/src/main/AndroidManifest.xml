@@ -62,6 +62,17 @@
             android:taskAffinity=""
             android:theme="@style/Theme.ClipboardReader" />
 
+        <!-- Shares / copies cropped screenshots from the app cache -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
         <!-- Accessibility Service for Floating Ball -->
         <service
             android:name=".core.QuickBallService"

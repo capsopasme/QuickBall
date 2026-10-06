@@ -95,6 +95,7 @@
     <string name="menu_previous_track">Vorheriger Titel</string>
     <string name="menu_sys_volume_bar">System-Lautstärkeleiste</string>
     <string name="menu_sys_volume_panel">Lautstärkepanel öffnen</string>
+    <string name="menu_volume_mixer">Schwebendes Lautstärkefeld</string>
     
     <!-- Connectivity -->
     <string name="menu_wifi">WLAN umschalten</string>
@@ -104,6 +105,7 @@
     
     <!-- Utilities -->
     <string name="menu_screenshot">Screenshot</string>
+    <string name="menu_partial_screenshot">Teilscreenshot</string>
     <string name="menu_lock_screen">Bildschirm sperren</string>
     <string name="menu_notification">Benachrichtigung</string>
     <string name="menu_quick_settings">Kontrollzentrum</string>
@@ -119,7 +121,7 @@
     <string name="gesture_search_apps">Apps suchen…</string>
     <string name="gesture_app_missing">App nicht installiert (%1$s)</string>
     <string name="ios_volume_hud_title">Lautstärke-Animation im iOS-Stil</string>
-    <string name="ios_volume_hud_description">Lauter/Leiser zeigt eine animierte Kapsel an der Kameraöffnung statt der einfachen Lautstärkeanzeige</string>
+    <string name="ios_volume_hud_description">Lauter/Leiser zeigt unter der Statusleiste eine animierte Kapsel statt der einfachen Lautstärkeanzeige. Ziehen zum Anpassen, antippen oder nach unten ziehen für alle Regler</string>
 
     <!-- Color Picker -->
     <string name="choose_color">Farbe wählen</string>

@@ -95,6 +95,7 @@
     <string name="menu_previous_track">上一首</string>
     <string name="menu_sys_volume_bar">系统音量条</string>
     <string name="menu_sys_volume_panel">打开音量面板</string>
+    <string name="menu_volume_mixer">悬浮音量面板</string>
     
     <!-- Connectivity -->
     <string name="menu_wifi">切换 Wi-Fi</string>
@@ -104,6 +105,7 @@
     
     <!-- Utilities -->
     <string name="menu_screenshot">截屏</string>
+    <string name="menu_partial_screenshot">局部截图</string>
     <string name="menu_lock_screen">锁屏</string>
     <string name="menu_notification">通知</string>
     <string name="menu_quick_settings">控制中心</string>
@@ -119,7 +121,7 @@
     <string name="gesture_search_apps">搜索应用…</string>
     <string name="gesture_app_missing">应用未安装（%1$s）</string>
     <string name="ios_volume_hud_title">iOS 风格音量动画</string>
-    <string name="ios_volume_hud_description">增减音量时在摄像头开孔处弹出动画胶囊，代替普通的音量提示</string>
+    <string name="ios_volume_hud_description">增减音量时在状态栏下方弹出动画胶囊，代替普通的音量提示。左右拖动可调节，点按或下拉展开完整音量面板</string>
 
     <!-- Color Picker -->
     <string name="choose_color">选择颜色</string>

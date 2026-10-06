@@ -346,6 +346,21 @@ object ToastUtil {
         }
     }
 
+    /** Removes a visible toast right away, e.g. before another overlay takes its place. */
+    fun hideNow() {
+        dismissRunnable?.let(handler::removeCallbacks)
+        dismissRunnable = null
+        val holder = viewHolder ?: return
+        val root = holder.rootLayout
+        // isAttachedToWindow is still false right after addView(); a visible root means added.
+        val added = root.isVisible || root.isAttachedToWindow
+        root.animate().cancel()
+        root.isVisible = false
+        if (added) {
+            runCatching { windowManager?.removeView(root) }
+        }
+    }
+
     /**
      * Must be called when the accessibility service goes away: the cached WindowManager belongs
      * to that service instance (TYPE_ACCESSIBILITY_OVERLAY needs its token), so keeping it would

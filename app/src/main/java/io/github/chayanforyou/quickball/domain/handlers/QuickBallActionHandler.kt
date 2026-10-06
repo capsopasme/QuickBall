@@ -18,9 +18,9 @@ import android.util.Log
 import android.view.KeyEvent
 import androidx.core.net.toUri
 import io.github.chayanforyou.quickball.core.RecentAppTracker
+import io.github.chayanforyou.quickball.core.VolumeHud
 import io.github.chayanforyou.quickball.domain.AppPreference
 import io.github.chayanforyou.quickball.domain.models.MenuAction
-import io.github.chayanforyou.quickball.ui.floating.VolumeHud
 import io.github.chayanforyou.quickball.domain.models.QuickBallMenuItem
 import io.github.chayanforyou.quickball.R
 import io.github.chayanforyou.quickball.localsend.ClipboardSendActivity
@@ -33,7 +33,8 @@ import kotlin.math.roundToInt
 class QuickBallActionHandler(
     private val accessibilityService: AccessibilityService,
     private val recentAppTracker: RecentAppTracker? = null,
-    private val performStash: (() -> Unit)? = null
+    private val performStash: (() -> Unit)? = null,
+    private val startPartialScreenshot: (() -> Unit)? = null,
 ) {
 
     companion object {
@@ -69,6 +70,8 @@ class QuickBallActionHandler(
 
     private val localSendNotifier: (String) -> Unit = { message -> showToast(message) }
 
+    private val volumeHud = VolumeHud(accessibilityService)
+
     init {
         initTorch()
         LocalSendSender.notifier = localSendNotifier
@@ -84,7 +87,14 @@ class QuickBallActionHandler(
         }
     }
 
+    /** Removes the volume HUD and any toast at once, e.g. right before a screenshot. */
+    fun dismissTransientUi() {
+        volumeHud.dismiss(immediate = true)
+        ToastUtil.hideNow()
+    }
+
     fun cleanup() {
+        volumeHud.destroy()
         if (LocalSendSender.notifier === localSendNotifier) LocalSendSender.notifier = null
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && torchCallback != null) {
             try {
@@ -117,6 +127,8 @@ class QuickBallActionHandler(
     }
 
     private fun showToast(message: String, performHaptic: Boolean = false) {
+        // Both sit at the top of the screen; the newer message wins.
+        volumeHud.dismiss(immediate = true)
         if (performHaptic) {
             runDelayed { context.performHapticFeedback() }
         }
@@ -151,6 +163,7 @@ class QuickBallActionHandler(
             MenuAction.BRIGHTNESS_DOWN -> changeBrightness(increase = false)
             MenuAction.LOCK_SCREEN -> performLockScreenAction()
             MenuAction.SCREENSHOT -> performScreenshotAction()
+            MenuAction.PARTIAL_SCREENSHOT -> startPartialScreenshot?.invoke()
             MenuAction.WIFI_TOGGLE -> toggleWifi()
             MenuAction.BLUETOOTH_TOGGLE -> toggleBluetooth()
             MenuAction.MOBILE_DATA_TOGGLE -> toggleMobileData()
@@ -161,6 +174,7 @@ class QuickBallActionHandler(
             MenuAction.MEDIA_PREVIOUS -> mediaPrevious()
             MenuAction.VOLUME_BAR -> showVolume()
             MenuAction.VOLUME_PANEL -> openVolumePanel()
+            MenuAction.VOLUME_MIXER -> volumeHud.showPanel()
             MenuAction.TORCH_TOGGLE -> toggleTorch()
             MenuAction.AUTO_ROTATE_TOGGLE -> toggleAutoRotate()
             MenuAction.AIRPLANE_MODE_TOGGLE -> toggleAirplaneMode()
@@ -227,19 +241,11 @@ class QuickBallActionHandler(
                 audioManager.setStreamVolume(stream, target, AudioManager.FLAG_PLAY_SOUND)
             }
             if (AppPreference.getInstance(context).isIosVolumeHud) {
-                VolumeHud.show(
-                    context = accessibilityService,
+                volumeHud.showStep(
+                    stream = stream,
                     previous = current,
-                    current = audioManager.getStreamVolume(stream),
-                    max = max,
-                    hitLimit = target == current,
-                    onVolumeChanged = { newVol ->
-                        try {
-                            audioManager.setStreamVolume(stream, newVol, 0)
-                        } catch (e: Exception) {
-                            Log.e(TAG, "Failed to set volume via HUD", e)
-                        }
-                    }
+                    up = up,
+                    limitReached = target == current
                 )
             } else {
                 showVolumeToast()
@@ -351,6 +357,7 @@ class QuickBallActionHandler(
     }
 
     private fun showBrightnessToast(percent: Int) {
+        volumeHud.dismiss(immediate = true)
         ToastUtil.showBrightnessToast(
             context = accessibilityService,
             percent = percent,

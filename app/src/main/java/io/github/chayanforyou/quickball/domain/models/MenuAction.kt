@@ -40,6 +40,8 @@ enum class MenuAction(
     VOLUME_BAR(R.drawable.ic_volume_up, R.string.menu_sys_volume_bar),
     @SerializedName("VOLUME_PANEL")
     VOLUME_PANEL(R.drawable.ic_volume_panel, R.string.menu_sys_volume_panel),
+    @SerializedName("VOLUME_MIXER")
+    VOLUME_MIXER(R.drawable.ic_volume_mixer, R.string.menu_volume_mixer),
 
     // Display
     @SerializedName("BRIGHTNESS_UP")
@@ -64,6 +66,8 @@ enum class MenuAction(
     // Utilities
     @SerializedName("SCREENSHOT")
     SCREENSHOT(R.drawable.ic_screenshot, R.string.menu_screenshot),
+    @SerializedName("PARTIAL_SCREENSHOT")
+    PARTIAL_SCREENSHOT(R.drawable.ic_partial_screenshot, R.string.menu_partial_screenshot),
     @SerializedName("LOCK_SCREEN")
     LOCK_SCREEN(R.drawable.ic_lock, R.string.menu_lock_screen),
     @SerializedName("NOTIFICATION")

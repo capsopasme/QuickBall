@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="volume_panel_title">Volume</string>
+    <string name="volume_stream_media">Media</string>
+    <string name="volume_stream_ring">Ringtone</string>
+    <string name="volume_stream_notification">Notifications</string>
+    <string name="volume_stream_alarm">Alarm</string>
+    <string name="volume_stream_call">Call</string>
+    <string name="volume_need_dnd_access">Allow Do Not Disturb access for QuickBall to change this</string>
+</resources>
