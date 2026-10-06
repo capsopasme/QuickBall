@@ -24,7 +24,6 @@ import android.view.animation.PathInterpolator
 import androidx.core.content.ContextCompat
 import io.github.chayanforyou.quickball.R
 import kotlin.math.PI
-import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.exp
 import kotlin.math.roundToInt
@@ -32,9 +31,10 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 
 /**
- * iOS (Dynamic Island) style volume indicator: a black capsule that springs out of the camera
- * hole at the top of the screen, a fill that springs to the new level, a short rubber-band
- * stretch when the volume is already at its limit, and a shrink back into the hole.
+ * iOS style volume indicator: a black capsule that springs open just below the status bar, a
+ * fill that springs to the new level, a short rubber-band stretch when the volume is already at
+ * its limit, and a shrink/fade away. It deliberately stays clear of the camera hole and the
+ * status bar (it used to grow out of the punch hole, which put the bar right across the camera).
  *
  * Power: nothing runs while it is not on screen. Animators only tick during their ~0.2–0.5 s,
  * drawing is one rounded rect, an icon and two bars on the GPU, and the overlay window is
@@ -156,6 +156,7 @@ object VolumeHud {
 
         p.width = v.windowWidth
         p.height = v.windowHeight
+        p.y = v.windowTop
 
         try {
             if (v.isAttachedToWindow) wm.updateViewLayout(v, p) else wm.addView(v, p)
@@ -324,14 +325,20 @@ internal class VolumeHudView(context: Context) : View(context) {
     private val iconSize = dp(18f)
     private val trackH = dp(6f)
 
-    private var compactW = dp(28f)
-    private var compactH = dp(28f)
-    private var centerY = dp(20f)
+    // Closed size the capsule springs open from (and shrinks back to).
+    private val compactW = fullW * 0.5f
+    private val compactH = fullH * 0.6f
+    // The window only spans the capsule, so the status bar above stays touchable.
+    private val centerY = sideMargin + fullH / 2f
+
+    /** Screen y of the window's top edge; set by [configure]. */
+    var windowTop = 0
+        private set
 
     val windowWidth: Int get() = (fullW + maxStretchW + 2 * sideMargin).roundToInt()
-    val windowHeight: Int get() = (centerY + fullH / 2f + sideMargin).roundToInt()
+    val windowHeight: Int get() = (fullH + 2 * sideMargin).roundToInt()
 
-    /** 0 = tucked into the camera hole, 1 = fully open. Spring values may overshoot slightly. */
+    /** 0 = closed (invisible), 1 = fully open. Spring values may overshoot slightly. */
     var reveal = 0f
         set(value) {
             field = value
@@ -362,6 +369,7 @@ internal class VolumeHudView(context: Context) : View(context) {
         }
 
     private val bgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.BLACK }
+    private val bgMaxAlpha = 235f
     private val trackPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.WHITE }
     private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.WHITE }
 
@@ -376,45 +384,14 @@ internal class VolumeHudView(context: Context) : View(context) {
         ContextCompat.getDrawable(context, res)?.mutate()?.apply { setTint(Color.WHITE) }
 
     /**
-     * Places the capsule over the camera hole in portrait (vertically centred in the status bar,
-     * where punch-hole cameras sit), or just below the top edge in landscape.
+     * Puts the capsule a little below the status bar in portrait (the status bar is at least as
+     * tall as the camera hole, so the two never overlap), or near the top edge in landscape where
+     * the status bar is usually hidden and the camera sits on a side edge.
      */
     fun configure(landscape: Boolean, statusBarPx: Int) {
-        if (landscape) {
-            compactW = dp(24f)
-            compactH = dp(24f)
-            centerY = dp(8f) + fullH / 2f
-        } else {
-            val bar = statusBarPx.toFloat().coerceAtLeast(dp(20f))
-            compactH = (bar * 0.72f).coerceIn(dp(20f), dp(34f))
-            compactW = compactH
-            centerY = bar / 2f
-        }
-        // A centred punch hole reported by the system (cached from an earlier show) wins.
-        val hole = portraitHole
-        if (!landscape && hole != null) {
-            centerY = hole.first
-            compactH = (hole.second + dp(6f)).coerceIn(dp(20f), dp(40f))
-            compactW = compactH
-        }
-        // Keep the open capsule fully on screen.
-        centerY = centerY.coerceAtLeast(fullH / 2f + dp(2f))
-    }
-
-    override fun onAttachedToWindow() {
-        super.onAttachedToWindow()
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return
-        if (resources.configuration.orientation != Configuration.ORIENTATION_PORTRAIT) return
-        val rect = rootWindowInsets?.displayCutout?.boundingRectTop ?: return
-        if (rect.isEmpty) return
-        // Only a camera hole centred at the top looks like the island; ignore corner notches.
-        if (abs(rect.exactCenterX() - resources.displayMetrics.widthPixels / 2f) > dp(12f)) return
-        portraitHole = rect.exactCenterY() to maxOf(rect.width(), rect.height()).toFloat()
-    }
-
-    private companion object {
-        /** (centre y, size) of the top punch hole in portrait, learned on first attach. */
-        var portraitHole: Pair<Float, Float>? = null
+        val gap = dp(6f)
+        val top = if (landscape) gap else statusBarPx + gap
+        windowTop = (top - sideMargin).roundToInt().coerceAtLeast(0)
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -426,6 +403,8 @@ internal class VolumeHudView(context: Context) : View(context) {
         val cx = width / 2f
         capsule.set(cx - w / 2f, centerY - h / 2f, cx + w / 2f, centerY + h / 2f)
         val radius = h / 2f
+        // The capsule fades in while it opens instead of emerging from the camera hole.
+        bgPaint.alpha = ((r / 0.35f).coerceIn(0f, 1f) * bgMaxAlpha).roundToInt()
         canvas.drawRoundRect(capsule, radius, radius, bgPaint)
 
         // Content fades in once the capsule is mostly open, and out early when it closes.
