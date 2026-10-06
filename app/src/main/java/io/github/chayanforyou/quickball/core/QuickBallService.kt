@@ -24,6 +24,7 @@ import android.view.accessibility.AccessibilityEvent
 import android.view.animation.PathInterpolator
 import androidx.core.content.getSystemService
 import io.github.chayanforyou.quickball.domain.AppPreference
+import io.github.chayanforyou.quickball.domain.models.GestureBinding
 import io.github.chayanforyou.quickball.domain.models.MenuAction
 import io.github.chayanforyou.quickball.domain.handlers.QuickBallActionHandler
 import io.github.chayanforyou.quickball.domain.models.QuickBallMenuItem
@@ -31,6 +32,7 @@ import io.github.chayanforyou.quickball.ui.floating.GestureListener
 import io.github.chayanforyou.quickball.ui.floating.FloatTouchView
 import io.github.chayanforyou.quickball.ui.floating.FloatPanelView
 import io.github.chayanforyou.quickball.ui.floating.SideKickView
+import io.github.chayanforyou.quickball.ui.floating.VolumeHud
 import io.github.chayanforyou.quickball.ui.floating.WaveBarView
 import io.github.chayanforyou.quickball.utils.DensityUtils
 import io.github.chayanforyou.quickball.utils.ToastUtil
@@ -226,6 +228,7 @@ class QuickBallService : AccessibilityService() {
         actionHandler?.cleanup()
         actionHandler = null
         ToastUtil.destroy()
+        VolumeHud.destroy()
         isExpanded = false
         isStashed = false
         isDragging = false
@@ -389,13 +392,23 @@ class QuickBallService : AccessibilityService() {
         override fun onSwipeDown() = executeGestureAction(prefs.swipeDownAction)
     }
 
-    private fun executeGestureAction(actionName: String) {
+    private fun executeGestureAction(binding: String) {
         if (!prefs.isGestureEnabled) return
+        if (executeBinding(binding)) resetInactivityTimer()
+    }
+
+    /** Runs a gesture binding (an action, or "open app"); returns false if it was invalid. */
+    private fun executeBinding(binding: String): Boolean {
+        val handler = actionHandler ?: return false
+        GestureBinding.appPackage(binding)?.let { pkg ->
+            performHapticFeedback()
+            handler.launchAppNow(pkg)
+            return true
+        }
+        val action = GestureBinding.action(binding) ?: return false
         performHapticFeedback()
-        val action = MenuAction.fromName(actionName) ?: return
-        val menuItem = QuickBallMenuItem(action = action)
-        actionHandler?.onMenuAction(menuItem)
-        resetInactivityTimer()
+        handler.onMenuAction(QuickBallMenuItem(action = action))
+        return true
     }
 
     /* -------------------- FAB Window & Gestures -------------------- */
@@ -828,10 +841,8 @@ class QuickBallService : AccessibilityService() {
         waveParams = null
     }
 
-    private fun executeWaveAction(actionName: String) {
-        val action = MenuAction.fromName(actionName) ?: return
-        performHapticFeedback()
-        actionHandler?.onMenuAction(QuickBallMenuItem(action = action))
+    private fun executeWaveAction(binding: String) {
+        executeBinding(binding)
     }
 
     /* -------------------- Menu Window Management -------------------- */

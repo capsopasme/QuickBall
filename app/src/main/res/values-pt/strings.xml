@@ -111,6 +111,15 @@
     <string name="menu_switch_last_app">Alternar para o último app</string>
     <string name="menu_send_clipboard_localsend">Enviar área de transferência ao LocalSend</string>
     <string name="toast_no_previous_app">Nenhum app anterior</string>
+    <string name="menu_phone_assistant">Assistente do telefone</string>
+    <string name="toast_assistant_not_found">O Assistente não está instalado e nenhum assistente padrão está definido</string>
+    <string name="toast_app_not_found">App não encontrado ou não pode ser aberto</string>
+    <string name="gesture_open_app">Abrir app…</string>
+    <string name="gesture_pick_app_title">Escolha o app a abrir</string>
+    <string name="gesture_search_apps">Pesquisar apps…</string>
+    <string name="gesture_app_missing">App não instalado (%1$s)</string>
+    <string name="ios_volume_hud_title">Animação de volume estilo iOS</string>
+    <string name="ios_volume_hud_description">Aumentar/diminuir volume mostra uma cápsula animada na câmera em vez do aviso simples</string>
 
     <!-- Color Picker -->
     <string name="choose_color">Escolher cor</string>

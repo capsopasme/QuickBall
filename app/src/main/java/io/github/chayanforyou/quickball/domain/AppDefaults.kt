@@ -24,6 +24,7 @@ object AppDefaults {
     val SWIPE_UP_ACTION = MenuAction.RECENT.name
     val SWIPE_DOWN_ACTION = MenuAction.NOTIFICATION.name
     const val HAPTIC_FEEDBACK_ENABLED = true
+    const val IOS_VOLUME_HUD = true
     const val WAVE_ENABLED = false
     const val WAVE_ON_RIGHT = true
     const val WAVE_Y_FRACTION = 0.7f

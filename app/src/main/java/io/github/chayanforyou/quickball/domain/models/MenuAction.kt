@@ -74,6 +74,8 @@ enum class MenuAction(
     POWER_DIALOG(R.drawable.ic_power_menu, R.string.menu_power_dialog),
     @SerializedName("SEND_CLIPBOARD_LOCALSEND")
     SEND_CLIPBOARD_LOCALSEND(R.drawable.ic_send_clipboard, R.string.menu_send_clipboard_localsend),
+    @SerializedName("PHONE_ASSISTANT")
+    PHONE_ASSISTANT(R.drawable.ic_assistant, R.string.menu_phone_assistant),
 
     // Apps
     @SerializedName("LAUNCH_APP")

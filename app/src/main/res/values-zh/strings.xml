@@ -111,6 +111,15 @@
     <string name="menu_switch_last_app">切回上个应用</string>
     <string name="menu_send_clipboard_localsend">剪贴板发送到 LocalSend</string>
     <string name="toast_no_previous_app">没有可切换的上个应用</string>
+    <string name="menu_phone_assistant">唤出手机助手</string>
+    <string name="toast_assistant_not_found">未安装手机助手，也没有设置默认助手应用</string>
+    <string name="toast_app_not_found">找不到该应用或无法打开</string>
+    <string name="gesture_open_app">打开应用…</string>
+    <string name="gesture_pick_app_title">选择要打开的应用</string>
+    <string name="gesture_search_apps">搜索应用…</string>
+    <string name="gesture_app_missing">应用未安装（%1$s）</string>
+    <string name="ios_volume_hud_title">iOS 风格音量动画</string>
+    <string name="ios_volume_hud_description">增减音量时在摄像头开孔处弹出动画胶囊，代替普通的音量提示</string>
 
     <!-- Color Picker -->
     <string name="choose_color">选择颜色</string>

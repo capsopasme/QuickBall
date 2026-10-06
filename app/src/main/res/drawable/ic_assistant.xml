@@ -1,0 +1,24 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+  <!-- microphone with a small spark: voice assistant -->
+  <path
+      android:pathData="M12,3.5C10.62,3.5 9.5,4.62 9.5,6V11.5C9.5,12.88 10.62,14 12,14C13.38,14 14.5,12.88 14.5,11.5V6C14.5,4.62 13.38,3.5 12,3.5Z"
+      android:strokeLineJoin="round"
+      android:strokeWidth="2"
+      android:fillColor="#00000000"
+      android:strokeColor="#ffffff"
+      android:strokeLineCap="round"/>
+  <path
+      android:pathData="M6,11C6,14.31 8.69,17 12,17C15.31,17 18,14.31 18,11M12,17V20.5M9,20.5H15"
+      android:strokeLineJoin="round"
+      android:strokeWidth="2"
+      android:fillColor="#00000000"
+      android:strokeColor="#ffffff"
+      android:strokeLineCap="round"/>
+  <path
+      android:pathData="M19.5,2.5L20.1,4.1L21.7,4.7L20.1,5.3L19.5,6.9L18.9,5.3L17.3,4.7L18.9,4.1Z"
+      android:fillColor="#ffffff"/>
+</vector>

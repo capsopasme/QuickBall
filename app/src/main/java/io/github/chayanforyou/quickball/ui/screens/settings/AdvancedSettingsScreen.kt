@@ -40,8 +40,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.chayanforyou.quickball.R
+import io.github.chayanforyou.quickball.domain.AppPreference
+import io.github.chayanforyou.quickball.ui.screens.home.components.SettingSwitchRow
 import io.github.chayanforyou.quickball.core.QuickBallService
-import io.github.chayanforyou.quickball.domain.models.MenuAction
 import io.github.chayanforyou.quickball.domain.models.PillGesture
 import io.github.chayanforyou.quickball.ui.screens.settings.components.ColorPickerDialog
 import io.github.chayanforyou.quickball.ui.screens.settings.components.ColorSettingRow
@@ -92,6 +93,8 @@ fun AdvancedSettingsScreen(
     var showToastBgColorDialog by remember { mutableStateOf(false) }
     var showToastFgColorDialog by remember { mutableStateOf(false) }
     var activeGestureBottomSheet by remember { mutableStateOf<PillGesture?>(null) }
+    val prefs = remember { AppPreference.getInstance(context) }
+    var iosVolumeHud by remember { mutableStateOf(prefs.isIosVolumeHud) }
 
     Scaffold(
         modifier = modifier,
@@ -340,6 +343,17 @@ fun AdvancedSettingsScreen(
                     modifier = Modifier.padding(20.dp),
                     verticalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
+                    // iOS-style animated volume capsule
+                    SettingSwitchRow(
+                        title = stringResource(R.string.ios_volume_hud_title),
+                        subtitle = stringResource(R.string.ios_volume_hud_description),
+                        checked = iosVolumeHud,
+                        onCheckedChange = { value ->
+                            iosVolumeHud = value
+                            prefs.isIosVolumeHud = value
+                        }
+                    )
+
                     // Toast Background Color Setting Option
                     ColorSettingRow(
                         title = stringResource(R.string.toast_bg_color_title),
@@ -598,29 +612,29 @@ fun AdvancedSettingsScreen(
             PillGesture.LONG_PRESS -> Triple(
                 stringResource(gesture.titleRes),
                 longPressAction
-            ) { action: MenuAction ->
-                viewModel.setLongPressAction(action.name)
+            ) { binding: String ->
+                viewModel.setLongPressAction(binding)
             }
 
             PillGesture.SWIPE_UP -> Triple(
                 stringResource(gesture.titleRes),
                 swipeUpAction
-            ) { action: MenuAction ->
-                viewModel.setSwipeUpAction(action.name)
+            ) { binding: String ->
+                viewModel.setSwipeUpAction(binding)
             }
 
             PillGesture.SWIPE_DOWN -> Triple(
                 stringResource(gesture.titleRes),
                 swipeDownAction
-            ) { action: MenuAction ->
-                viewModel.setSwipeDownAction(action.name)
+            ) { binding: String ->
+                viewModel.setSwipeDownAction(binding)
             }
         }
 
         GestureActionBottomSheet(
             title = title,
-            currentActionName = currentAction,
-            onActionSelected = onSelect,
+            currentBinding = currentAction,
+            onBindingSelected = onSelect,
             onDismissRequest = { activeGestureBottomSheet = null }
         )
     }
