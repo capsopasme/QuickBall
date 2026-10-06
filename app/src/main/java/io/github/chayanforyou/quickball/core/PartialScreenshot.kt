@@ -23,7 +23,9 @@ import io.github.chayanforyou.quickball.ui.floating.CropOverlayView
 import io.github.chayanforyou.quickball.utils.ScreenshotStore
 import io.github.chayanforyou.quickball.utils.ToastUtil
 import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.TimeUnit
 
 /**
  * Partial screenshot: hides QuickBall's own overlays, captures the display through the
@@ -56,6 +58,8 @@ class PartialScreenshot(
 
         // AccessibilityService.ERROR_TAKE_SCREENSHOT_SECURE_WINDOW (API 34)
         private const val ERROR_SECURE_WINDOW = 6
+
+        private const val WORKER_IDLE_SECONDS = 30L
     }
 
     /** The captured screenshot and how many users (overlay, pending saves) still hold it. */
@@ -201,7 +205,11 @@ class PartialScreenshot(
         ) {
             captured.refs++
             val appContext = service.applicationContext
-            val worker = executor ?: Executors.newSingleThreadExecutor().also { executor = it }
+            // One worker that ends after a short idle time instead of living as long as the
+            // service once the first screenshot has been saved.
+            val worker = executor ?: ThreadPoolExecutor(
+                1, 1, WORKER_IDLE_SECONDS, TimeUnit.SECONDS, LinkedBlockingQueue()
+            ).apply { allowCoreThreadTimeOut(true) }.also { executor = it }
             worker.execute {
                 val result = runCatching {
                     if (action == CropOverlayView.Action.SAVE) {

@@ -84,6 +84,69 @@ class MenuItemDeserializationTest {
     }
 
     @Test
+    fun testParseStoredListSkipsUnknownAndCorruptEntries() {
+        val json = """
+            [
+                {"action": "VOLUME_UP", "isSelected": false},
+                {"action": "SOME_FUTURE_ACTION"},
+                {"iconRes": 1234},
+                {"action": "LAUNCH_APP", "packageName": "com.whatsapp", "appTitle": "WhatsApp"},
+                {"packageName": "com.instagram.android", "appTitle": "Instagram"},
+                {"action": "SILENT_TOGGLE"},
+                "not an object"
+            ]
+        """.trimIndent()
+
+        val items = QuickBallMenuItem.parseStoredList(json)
+
+        assertEquals(4, items.size)
+        assertEquals(MenuAction.VOLUME_UP, items[0].action)
+        assertEquals(MenuAction.LAUNCH_APP, items[1].action)
+        assertEquals("com.whatsapp", items[1].packageName)
+        assertEquals("WhatsApp", items[1].appTitle)
+        assertEquals("com.instagram.android", items[2].packageName)
+        assertEquals(MenuAction.DND_TOGGLE, items[3].action)
+    }
+
+    @Test
+    fun testParseStoredListDropsDuplicates() {
+        val json = """
+            [
+                {"action": "VOLUME_UP"},
+                {"action": "VOLUME_UP"},
+                {"action": "LAUNCH_APP", "packageName": "com.whatsapp"},
+                {"action": "LAUNCH_APP", "packageName": "com.whatsapp"},
+                {"action": "LOCK_SCREEN"}
+            ]
+        """.trimIndent()
+
+        val items = QuickBallMenuItem.parseStoredList(json)
+
+        assertEquals(
+            listOf(MenuAction.VOLUME_UP, MenuAction.LAUNCH_APP, MenuAction.LOCK_SCREEN),
+            items.map { it.action }
+        )
+    }
+
+    @Test
+    fun testParseStoredListRoundTripsGsonOutput() {
+        val original = listOf(
+            QuickBallMenuItem(action = MenuAction.BRIGHTNESS_UP),
+            QuickBallMenuItem.createAppMenuItem("Gallery", "deckers.thibault.aves"),
+            QuickBallMenuItem(action = MenuAction.PARTIAL_SCREENSHOT)
+        )
+
+        val items = QuickBallMenuItem.parseStoredList(gson.toJson(original))
+
+        assertEquals(original, items)
+    }
+
+    @Test
+    fun testParseStoredListOfNonArrayIsEmpty() {
+        assertEquals(emptyList<QuickBallMenuItem>(), QuickBallMenuItem.parseStoredList("{\"a\":1}"))
+    }
+
+    @Test
     fun testGetIconResNeverThrowsNpeWhenActionIsNull() {
         val menuItem = QuickBallMenuItem(action = MenuAction.VOLUME_UP)
         // Accessing iconRes should return valid resource ID

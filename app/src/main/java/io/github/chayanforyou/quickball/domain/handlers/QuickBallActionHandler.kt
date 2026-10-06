@@ -6,6 +6,7 @@ import android.content.ActivityNotFoundException
 import android.bluetooth.BluetoothAdapter
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
 import android.media.AudioManager
@@ -91,6 +92,10 @@ class QuickBallActionHandler(
     fun dismissTransientUi() {
         volumeHud.dismiss(immediate = true)
         ToastUtil.hideNow()
+    }
+
+    fun onConfigurationChanged(newConfig: Configuration) {
+        volumeHud.onConfigurationChanged(newConfig)
     }
 
     fun cleanup() {

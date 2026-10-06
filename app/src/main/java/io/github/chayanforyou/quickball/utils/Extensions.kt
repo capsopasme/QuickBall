@@ -1,6 +1,7 @@
 package io.github.chayanforyou.quickball.utils
 
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Point
 import android.graphics.drawable.Drawable
@@ -9,8 +10,11 @@ import android.util.DisplayMetrics
 import android.view.Display
 import android.view.WindowManager
 import android.view.WindowMetrics
+import androidx.annotation.WorkerThread
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
+import androidx.core.graphics.drawable.toBitmap
 import io.github.chayanforyou.quickball.domain.AppPreference
 import io.github.chayanforyou.quickball.domain.models.InstalledApp
 
@@ -29,36 +33,46 @@ fun Context.getAppIcon(packageName: String): Drawable? {
     }
 }
 
+/** Size the app lists draw icons at; icons are rasterised once at this size. */
+private const val APP_ICON_DP = 36f
+
 /**
- * Load all installed applications that have a launcher intent.
+ * Load all installed applications that have a launcher entry.
  * Filters out the current app and apps without proper names.
+ *
+ * Call it off the main thread. One launcher query replaces a getLaunchIntentForPackage() IPC
+ * per installed package, and each icon is rasterised here once instead of on every
+ * recomposition of the list (a full-size bitmap per app each time a switch was toggled).
  *
  * @param sortBySelectedFirst If true, selected apps (from auto-hide list) appear first,
  *                            then sorted alphabetically. If false, all apps sorted alphabetically.
  * @return List of installed apps with their name, package, icon, and selection state
  */
+@WorkerThread
 fun Context.loadInstalledApps(sortBySelectedFirst: Boolean = false): List<InstalledApp> {
-    val installedApps = packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
+    val pm = packageManager
     val autoHideApps = AppPreference.getInstance(this).autoHideApps
+    val iconPx = DensityUtils.dp2px(APP_ICON_DP)
+    val launcherIntent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER)
+    val seen = HashSet<String>()
 
-    val apps = installedApps
-        .filter { appInfo ->
-            packageManager.getLaunchIntentForPackage(appInfo.packageName) != null &&
-                    appInfo.packageName != packageName
-        }
-        .mapNotNull { appInfo ->
-            val appName = packageManager.getApplicationLabel(appInfo).toString()
-            if (appName.isBlank() || appName.equals(
-                    appInfo.packageName,
-                    ignoreCase = true
-                )
-            ) return@mapNotNull null
-            val icon = packageManager.getApplicationIcon(appInfo)
+    val apps = pm.queryIntentActivities(launcherIntent, 0)
+        .mapNotNull { resolveInfo ->
+            val appInfo = resolveInfo.activityInfo?.applicationInfo ?: return@mapNotNull null
+            val pkg = appInfo.packageName
+            if (pkg == packageName || !seen.add(pkg)) return@mapNotNull null
+            val appName = pm.getApplicationLabel(appInfo).toString()
+            if (appName.isBlank() || appName.equals(pkg, ignoreCase = true)) return@mapNotNull null
+            val icon = try {
+                pm.getApplicationIcon(appInfo).toBitmap(iconPx, iconPx).asImageBitmap()
+            } catch (_: Exception) {
+                return@mapNotNull null
+            }
             InstalledApp(
                 appName = appName,
-                packageName = appInfo.packageName,
+                packageName = pkg,
                 icon = icon,
-                isSelected = autoHideApps.contains(appInfo.packageName)
+                isSelected = autoHideApps.contains(pkg)
             )
         }
 

@@ -127,11 +127,14 @@ fun HomeScreen(
     val hideOnLandscape = uiState.hideOnLandscape
     val stickToEdge = uiState.stickToEdge
 
+    // Called from a lifecycle observer that is registered once, so it must read the current
+    // switch state instead of capturing the value from the first composition: after turning the
+    // ball off and coming back to this screen, the stale value re-enabled it.
     fun refreshPermissionsState() {
         val hasAccessibility = PermissionUtils.isAccessibilityServiceEnabled(context)
         viewModel.refreshPermissionsState(hasAccessibility)
 
-        val action = if (hasAccessibility && isQuickBallEnabled) {
+        val action = if (hasAccessibility && viewModel.uiState.value.isQuickBallEnabled) {
             QuickBallService.ACTION_ENABLE
         } else {
             QuickBallService.ACTION_DISABLE

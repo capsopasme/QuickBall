@@ -5,7 +5,6 @@ import android.content.SharedPreferences
 import android.util.Log
 import androidx.core.content.edit
 import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import io.github.chayanforyou.quickball.domain.models.MenuAction
 import io.github.chayanforyou.quickball.domain.models.QuickBallMenuItem
 import io.github.chayanforyou.quickball.localsend.LocalSendTarget
@@ -67,7 +66,6 @@ class AppPreference private constructor(context: Context) {
         private const val KEY_LOCALSEND_ALIAS = "localsend_alias"
 
         private val gson = Gson()
-        private val menuItemListType = object : TypeToken<List<QuickBallMenuItem>>() {}.type
 
         @Volatile
         private var INSTANCE: AppPreference? = null
@@ -263,16 +261,10 @@ class AppPreference private constructor(context: Context) {
             if (json.isNullOrEmpty()) return getDefaultSelectedItems()
 
             return try {
-                val items: List<QuickBallMenuItem>? = gson.fromJson(json, menuItemListType)
-                val validItems = items?.mapNotNull { item ->
-                    if (item.packageName != null) {
-                        item.copy(action = MenuAction.LAUNCH_APP)
-                    } else {
-                        QuickBallMenuItem.getMenuItemByAction(item.action)
-                    }
-                }
-                if (validItems != null && validItems.size >= 2) validItems else getDefaultSelectedItems()
+                val validItems = QuickBallMenuItem.parseStoredList(json)
+                if (validItems.size >= 2) validItems else getDefaultSelectedItems()
             } catch (_: Exception) {
+                // Only unreadable JSON is dropped; unknown entries are skipped by the parser.
                 prefs.edit { remove(KEY_SELECTED_MENU_ITEMS) }
                 getDefaultSelectedItems()
             }

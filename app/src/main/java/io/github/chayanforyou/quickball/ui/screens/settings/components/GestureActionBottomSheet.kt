@@ -41,17 +41,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.core.graphics.drawable.toBitmap
 import io.github.chayanforyou.quickball.R
 import io.github.chayanforyou.quickball.domain.models.GestureBinding
 import io.github.chayanforyou.quickball.domain.models.MenuAction
-import io.github.chayanforyou.quickball.utils.DensityUtils
 import io.github.chayanforyou.quickball.utils.loadInstalledApps
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -228,13 +225,8 @@ private fun AppPickerList(currentApp: String?, onPicked: (String) -> Unit) {
     // list scrolls without drawing adaptive icon drawables every frame.
     val apps by produceState<List<PickableApp>?>(initialValue = null) {
         value = withContext(Dispatchers.IO) {
-            val iconPx = DensityUtils.dp2px(36f)
             context.loadInstalledApps().map {
-                PickableApp(
-                    packageName = it.packageName,
-                    name = it.appName,
-                    icon = it.icon.toBitmap(iconPx, iconPx).asImageBitmap()
-                )
+                PickableApp(packageName = it.packageName, name = it.appName, icon = it.icon)
             }
         }
     }

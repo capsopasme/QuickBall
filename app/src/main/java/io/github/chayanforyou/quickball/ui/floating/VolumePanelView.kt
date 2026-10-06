@@ -117,10 +117,20 @@ class VolumePanelView(context: Context, private val host: Host) : View(context) 
     private val rowH = dp(ROW_H_DP)
     private val expandedH = headerH + rowH * rows.size + dp(BOTTOM_PAD_DP)
 
-    val collapsedWindowWidth = (collapsedW + stretchW + 2 * marginPx).roundToInt()
+    /**
+     * One width for both states. The window is centred horizontally, so a width change would
+     * also move its left edge, and the system animates (or flashes for a frame) a window whose
+     * position changes together with its size: the capsule visibly jumped sideways and slid
+     * back right after the panel had collapsed. With a fixed width only the height changes and
+     * the window's top-left corner never moves.
+     */
+    val windowWidth = (max(expandedW, collapsedW + stretchW) + 2 * marginPx).roundToInt()
     val collapsedWindowHeight = (collapsedH + 2 * marginPx).roundToInt()
-    val expandedWindowWidth = (max(expandedW, collapsedW + stretchW) + 2 * marginPx).roundToInt()
     val expandedWindowHeight = (expandedH + 2 * marginPx).roundToInt()
+
+    /** Extra reach around the card so a touch just beside its edge still counts as on it. */
+    private val touchSlack = dp(8f)
+    private val hitRect = RectF()
 
     private val barH = dp(6f)
     private val barHPressed = dp(10f)
@@ -299,7 +309,9 @@ class VolumePanelView(context: Context, private val host: Host) : View(context) 
 
         if (!isExpanded && !collapseNotified && expansion.isAtRest) {
             collapseNotified = true
-            host.onCollapseSettled()
+            // Resizing the window relayouts this view: not from inside its own draw pass. The
+            // panel may have been reopened by the time this runs; then it must stay large.
+            post { if (!isExpanded) host.onCollapseSettled() }
         }
         if (isHiding && !hiddenNotified && appear.value < 0.02f) {
             hiddenNotified = true
@@ -588,8 +600,15 @@ class VolumePanelView(context: Context, private val host: Host) : View(context) 
             }
 
             MotionEvent.ACTION_DOWN -> {
-                // Only the visible card reacts; the transparent margin around it is ignored.
-                if (isHiding || appear.value < 0.5f || !card.contains(event.x, event.y)) return false
+                if (isHiding || appear.value < 0.5f) return false
+                hitRect.set(card)
+                hitRect.inset(-touchSlack, -touchSlack)
+                if (!hitRect.contains(event.x, event.y)) {
+                    // The transparent part of the window cannot pass the touch on to the app
+                    // below, so at least get out of the way: same as a tap outside the window.
+                    if (isExpanded) collapse() else hide()
+                    return false
+                }
                 downX = event.x
                 downY = event.y
                 limitTicked = false

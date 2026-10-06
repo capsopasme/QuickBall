@@ -16,6 +16,7 @@ import java.security.cert.X509Certificate
 import java.security.spec.ECGenParameterSpec
 import java.security.spec.PKCS8EncodedKeySpec
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
@@ -125,7 +126,7 @@ internal object SelfSignedCert {
             integer(BigInteger(1, serial)),
             algorithm,
             name,
-            seq(utcTime(notBefore), utcTime(notAfter)),
+            seq(certTime(notBefore), certTime(notAfter)),
             name,
             subjectPublicKeyInfo
         )
@@ -161,11 +162,17 @@ internal object SelfSignedCert {
     private fun integer(value: BigInteger) = tlv(0x02, value.toByteArray())
     private fun bitString(bytes: ByteArray) = tlv(0x03, byteArrayOf(0) + bytes)
 
-    private fun utcTime(date: Date): ByteArray {
-        val format = SimpleDateFormat("yyMMddHHmmss'Z'", Locale.US).apply {
-            timeZone = TimeZone.getTimeZone("UTC")
-        }
-        return tlv(0x17, format.format(date).toByteArray(Charsets.US_ASCII))
+    /**
+     * RFC 5280: UTCTime up to 2049, GeneralizedTime from 2050 on. UTCTime has a two-digit year
+     * read as 1950–2049, so a certificate made from 2030 on (20-year validity) would otherwise
+     * have expired in 1950 and been regenerated, with a new fingerprint, on every send.
+     */
+    private fun certTime(date: Date): ByteArray {
+        val utc = TimeZone.getTimeZone("UTC")
+        val year = Calendar.getInstance(utc).apply { time = date }.get(Calendar.YEAR)
+        val (tag, pattern) = if (year < 2050) 0x17 to "yyMMddHHmmss'Z'" else 0x18 to "yyyyMMddHHmmss'Z'"
+        val format = SimpleDateFormat(pattern, Locale.US).apply { timeZone = utc }
+        return tlv(tag, format.format(date).toByteArray(Charsets.US_ASCII))
     }
 
     private fun oid(dotted: String): ByteArray {

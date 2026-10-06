@@ -189,7 +189,9 @@ class QuickBallService : AccessibilityService() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (windowManager != null) {
             when (intent?.action) {
-                ACTION_ENABLE -> showBall()
+                // Re-checked here: a stale ENABLE must not show a ball that is switched off
+                // or meant to stay hidden in landscape.
+                ACTION_ENABLE -> if (isEnabled && !hideForLandscape) showBall() else hideBall()
                 ACTION_DISABLE -> hideBall()
                 ACTION_STASH -> stashFab()
                 ACTION_UNSTASH -> unstashFab()
@@ -304,6 +306,7 @@ class QuickBallService : AccessibilityService() {
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
+        actionHandler?.onConfigurationChanged(newConfig)
         refreshBallVisibility()
         recalculatePosition()
     }
@@ -1109,6 +1112,9 @@ class QuickBallService : AccessibilityService() {
      * so turning the screen back on before it actually locks just shows the ball again.
      */
     private fun onScreenOff() {
+        // Nothing animates while the display is off: a volume HUD or toast would freeze half
+        // way and keep its window and volume receiver until the screen came back on.
+        actionHandler?.dismissTransientUi()
         if (!isEnabled || !showOnLockScreen) {
             hideBall()
             return

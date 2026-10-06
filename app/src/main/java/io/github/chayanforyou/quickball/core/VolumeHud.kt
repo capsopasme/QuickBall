@@ -48,6 +48,7 @@ class VolumeHud(private val service: AccessibilityService) : VolumePanelView.Hos
     private var windowExpanded = false
     private var touchActive = false
     private var receiverRegistered = false
+    private var shownOrientation = Configuration.ORIENTATION_UNDEFINED
 
     private val hideRunnable = Runnable { view?.hide() }
 
@@ -92,6 +93,11 @@ class VolumeHud(private val service: AccessibilityService) : VolumePanelView.Hos
 
     fun destroy() = dismiss(immediate = true)
 
+    /** The capsule's top offset depends on the orientation; a rotated HUD would sit wrong. */
+    fun onConfigurationChanged(newConfig: Configuration) {
+        if (view != null && newConfig.orientation != shownOrientation) dismiss(immediate = true)
+    }
+
     // ------------------------------------------------------------------ window
 
     private fun obtainView(): VolumePanelView? {
@@ -119,7 +125,7 @@ class VolumeHud(private val service: AccessibilityService) : VolumePanelView.Hos
             WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY
         }
         val p = WindowManager.LayoutParams(
-            hud.collapsedWindowWidth,
+            hud.windowWidth,
             hud.collapsedWindowHeight,
             type,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
@@ -136,6 +142,9 @@ class VolumeHud(private val service: AccessibilityService) : VolumePanelView.Hos
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 layoutInDisplayCutoutMode =
                     WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
+                // Centre on the whole display; by default a side navigation bar (landscape)
+                // narrowed the frame and pushed the capsule off centre.
+                fitInsetsTypes = 0
             } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 layoutInDisplayCutoutMode =
                     WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
@@ -150,6 +159,7 @@ class VolumeHud(private val service: AccessibilityService) : VolumePanelView.Hos
         }
         view = hud
         params = p
+        shownOrientation = service.resources.configuration.orientation
         windowExpanded = false
         touchActive = false
         registerReceiver()
@@ -172,12 +182,15 @@ class VolumeHud(private val service: AccessibilityService) : VolumePanelView.Hos
         return statusBar + gap
     }
 
+    /**
+     * Only the height changes, downwards from a fixed top edge: the window never moves, so the
+     * system has no window movement to animate and the capsule stays put while it resizes.
+     */
     private fun resizeWindow(expanded: Boolean) {
         val hud = view ?: return
         val p = params ?: return
         if (windowExpanded == expanded) return
         windowExpanded = expanded
-        p.width = if (expanded) hud.expandedWindowWidth else hud.collapsedWindowWidth
         p.height = if (expanded) hud.expandedWindowHeight else hud.collapsedWindowHeight
         try {
             windowManager?.updateViewLayout(hud, p)

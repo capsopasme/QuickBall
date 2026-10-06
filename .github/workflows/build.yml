@@ -22,8 +22,8 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
 
-      - name: Build debug APK
-        run: ./gradlew assembleDebug
+      - name: Build debug APK and run unit tests
+        run: ./gradlew assembleDebug testDebugUnitTest
 
       - name: Upload APK
         uses: actions/upload-artifact@v7

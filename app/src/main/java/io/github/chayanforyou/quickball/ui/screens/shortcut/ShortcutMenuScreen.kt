@@ -52,6 +52,7 @@ import io.github.chayanforyou.quickball.ui.screens.shortcut.components.draggable
 import io.github.chayanforyou.quickball.ui.screens.shortcut.components.rememberDragDropState
 import io.github.chayanforyou.quickball.ui.theme.AppCardDefaults
 import io.github.chayanforyou.quickball.ui.viewmodels.QuickBallViewModel
+import io.github.chayanforyou.quickball.utils.DensityUtils
 import io.github.chayanforyou.quickball.utils.getAppIcon
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -183,13 +184,19 @@ private fun ShortcutItemRow(
 
         Spacer(modifier = Modifier.width(24.dp))
 
-        val appIcon = if (item.action == MenuAction.LAUNCH_APP && item.packageName != null) {
-            context.getAppIcon(item.packageName)
-        } else null
+        // Looked up and rasterised once per app, not on every recomposition (e.g. while dragging).
+        val appIcon = remember(item.action, item.packageName) {
+            if (item.action == MenuAction.LAUNCH_APP && item.packageName != null) {
+                context.getAppIcon(item.packageName)?.let { drawable ->
+                    val px = DensityUtils.dp2px(24f)
+                    drawable.toBitmap(px, px).asImageBitmap()
+                }
+            } else null
+        }
 
         if (appIcon != null) {
             Image(
-                bitmap = appIcon.toBitmap().asImageBitmap(),
+                bitmap = appIcon,
                 contentDescription = item.getTitle(context),
                 modifier = Modifier.size(24.dp)
             )
