@@ -259,6 +259,12 @@ class VolumePanelView(context: Context, private val host: Host) : View(context) 
         if (isHiding) return
         isHiding = true
         releaseTouch()
+        if (isExpanded) {
+            // Fold back into the capsule while it shrinks away, like the island closing.
+            isExpanded = false
+            collapseNotified = false
+            expansion.animateTo(0f, 380f, 0.92f)
+        }
         appear.animateTo(0f, 420f, 1f)
         invalidate()
     }

@@ -312,7 +312,10 @@ class VolumeHud(private val service: AccessibilityService) : VolumePanelView.Hos
         scheduleHide()
     }
 
-    override fun onHidden() = removeWindow()
+    override fun onHidden() {
+        // A step may have revived the HUD between the hide animation ending and this call.
+        if (view?.isHiding == true) removeWindow()
+    }
 
     override fun onRingerModeClicked() {
         cycleRingerMode()
