@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="shot_hint">拖动框选截图区域</string>
+    <string name="shot_cancel">取消</string>
+    <string name="shot_copy">复制</string>
+    <string name="shot_share">分享</string>
+    <string name="shot_save">保存</string>
+    <string name="shot_saved">已保存到 Pictures/Screenshots</string>
+    <string name="shot_copied">已复制到剪贴板</string>
+    <string name="shot_share_title">分享截图</string>
+    <string name="shot_failed">截图失败</string>
+    <string name="shot_save_failed">截图保存失败</string>
+    <string name="shot_no_permission">请在无障碍设置中关闭再重新开启 QuickBall，以授予截图权限</string>
+    <string name="shot_secure">当前画面禁止截图</string>
+    <string name="shot_too_fast">操作过快，请稍后再试</string>
+    <string name="shot_unsupported">局部截图需要 Android 11 及以上</string>
+</resources>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="shot_hint">Drag to select an area</string>
+    <string name="shot_cancel">Cancel</string>
+    <string name="shot_copy">Copy</string>
+    <string name="shot_share">Share</string>
+    <string name="shot_save">Save</string>
+    <string name="shot_saved">Saved to Pictures/Screenshots</string>
+    <string name="shot_copied">Copied to clipboard</string>
+    <string name="shot_share_title">Share screenshot</string>
+    <string name="shot_failed">Screenshot failed</string>
+    <string name="shot_save_failed">Could not save the screenshot</string>
+    <string name="shot_no_permission">Turn QuickBall off and on again in Accessibility settings to allow screenshots</string>
+    <string name="shot_secure">This screen can\'t be captured</string>
+    <string name="shot_too_fast">Too fast, try again in a moment</string>
+    <string name="shot_unsupported">Partial screenshots need Android 11 or later</string>
+</resources>

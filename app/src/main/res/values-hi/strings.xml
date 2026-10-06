@@ -95,6 +95,7 @@
     <string name="menu_previous_track">पिछला ट्रैक</string>
     <string name="menu_sys_volume_bar">सिस्टम वॉल्यूम बार</string>
     <string name="menu_sys_volume_panel">वॉल्यूम पैनल खोलें</string>
+    <string name="menu_volume_mixer">फ़्लोटिंग वॉल्यूम पैनल</string>
     
     <!-- Connectivity -->
     <string name="menu_wifi">वाई-फाई टॉगल करें</string>
@@ -104,6 +105,7 @@
     
     <!-- Utilities -->
     <string name="menu_screenshot">स्क्रीनशॉट</string>
+    <string name="menu_partial_screenshot">आंशिक स्क्रीनशॉट</string>
     <string name="menu_lock_screen">स्क्रीन लॉक करें</string>
     <string name="menu_notification">सूचनाएं</string>
     <string name="menu_quick_settings">कंट्रोल सेंटर</string>
@@ -111,6 +113,15 @@
     <string name="menu_switch_last_app">पिछले ऐप पर जाएं</string>
     <string name="menu_send_clipboard_localsend">क्लिपबोर्ड LocalSend पर भेजें</string>
     <string name="toast_no_previous_app">पिछला कोई ऐप नहीं है</string>
+    <string name="menu_phone_assistant">फ़ोन असिस्टेंट</string>
+    <string name="toast_assistant_not_found">फ़ोन असिस्टेंट इंस्टॉल नहीं है और कोई डिफ़ॉल्ट असिस्टेंट सेट नहीं है</string>
+    <string name="toast_app_not_found">ऐप नहीं मिला या खोला नहीं जा सकता</string>
+    <string name="gesture_open_app">ऐप खोलें…</string>
+    <string name="gesture_pick_app_title">खोलने के लिए ऐप चुनें</string>
+    <string name="gesture_search_apps">ऐप खोजें…</string>
+    <string name="gesture_app_missing">ऐप इंस्टॉल नहीं है (%1$s)</string>
+    <string name="ios_volume_hud_title">iOS-शैली वॉल्यूम एनिमेशन</string>
+    <string name="ios_volume_hud_description">वॉल्यूम बढ़ाने/घटाने पर साधारण टोस्ट की जगह स्टेटस बार के नीचे एनिमेटेड कैप्सूल दिखता है। खींचकर बदलें, सभी स्लाइडर के लिए टैप करें या नीचे खींचें</string>
 
     <!-- Color Picker -->
     <string name="choose_color">रंग चुनें</string>

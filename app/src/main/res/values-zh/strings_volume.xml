@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="volume_panel_title">音量</string>
+    <string name="volume_stream_media">媒体</string>
+    <string name="volume_stream_ring">铃声</string>
+    <string name="volume_stream_notification">通知</string>
+    <string name="volume_stream_alarm">闹钟</string>
+    <string name="volume_stream_call">通话</string>
+    <string name="volume_need_dnd_access">需要为 QuickBall 开启「勿扰权限」才能调整</string>
+</resources>

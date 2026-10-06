@@ -95,6 +95,7 @@
     <string name="menu_previous_track">Traccia precedente</string>
     <string name="menu_sys_volume_bar">Barra del volume di sistema</string>
     <string name="menu_sys_volume_panel">Apri pannello volume</string>
+    <string name="menu_volume_mixer">Pannello volume flottante</string>
     
     <!-- Connectivity -->
     <string name="menu_wifi">Alterna Wi-Fi</string>
@@ -104,6 +105,7 @@
     
     <!-- Utilities -->
     <string name="menu_screenshot">Screenshot</string>
+    <string name="menu_partial_screenshot">Screenshot parziale</string>
     <string name="menu_lock_screen">Blocca schermo</string>
     <string name="menu_notification">Notifica</string>
     <string name="menu_quick_settings">Centro di controllo</string>
@@ -111,6 +113,15 @@
     <string name="menu_switch_last_app">Passa all\'ultima app</string>
     <string name="menu_send_clipboard_localsend">Invia appunti a LocalSend</string>
     <string name="toast_no_previous_app">Nessuna app precedente</string>
+    <string name="menu_phone_assistant">Assistente telefono</string>
+    <string name="toast_assistant_not_found">L\'Assistente non è installato e non è impostato un assistente predefinito</string>
+    <string name="toast_app_not_found">App non trovata o impossibile da aprire</string>
+    <string name="gesture_open_app">Apri app…</string>
+    <string name="gesture_pick_app_title">Scegli l\'app da aprire</string>
+    <string name="gesture_search_apps">Cerca app…</string>
+    <string name="gesture_app_missing">App non installata (%1$s)</string>
+    <string name="ios_volume_hud_title">Animazione volume stile iOS</string>
+    <string name="ios_volume_hud_description">Alza/abbassa volume mostra una capsula animata sotto la barra di stato invece del semplice avviso. Trascinala per regolare; toccala o tirala giù per tutti i cursori</string>
 
     <!-- Color Picker -->
     <string name="choose_color">Scegli colore</string>

@@ -95,6 +95,7 @@
     <string name="menu_previous_track">Pista anterior</string>
     <string name="menu_sys_volume_bar">Barra de volumen del sistema</string>
     <string name="menu_sys_volume_panel">Abrir panel de volumen</string>
+    <string name="menu_volume_mixer">Panel de volumen flotante</string>
     
     <!-- Connectivity -->
     <string name="menu_wifi">Alternar Wi-Fi</string>
@@ -104,6 +105,7 @@
     
     <!-- Utilities -->
     <string name="menu_screenshot">Captura de pantalla</string>
+    <string name="menu_partial_screenshot">Captura parcial</string>
     <string name="menu_lock_screen">Bloquear pantalla</string>
     <string name="menu_notification">Notificación</string>
     <string name="menu_quick_settings">Centro de control</string>
@@ -111,6 +113,15 @@
     <string name="menu_switch_last_app">Cambiar a la última app</string>
     <string name="menu_send_clipboard_localsend">Enviar portapapeles a LocalSend</string>
     <string name="toast_no_previous_app">No hay una app anterior</string>
+    <string name="menu_phone_assistant">Asistente del teléfono</string>
+    <string name="toast_assistant_not_found">El Asistente no está instalado y no hay un asistente predeterminado</string>
+    <string name="toast_app_not_found">App no encontrada o no se puede abrir</string>
+    <string name="gesture_open_app">Abrir app…</string>
+    <string name="gesture_pick_app_title">Elige la app que se abrirá</string>
+    <string name="gesture_search_apps">Buscar apps…</string>
+    <string name="gesture_app_missing">App no instalada (%1$s)</string>
+    <string name="ios_volume_hud_title">Animación de volumen estilo iOS</string>
+    <string name="ios_volume_hud_description">Subir/bajar volumen muestra una cápsula animada bajo la barra de estado en lugar del aviso simple. Arrástrala para ajustar; tócala o deslízala hacia abajo para ver todos los controles</string>
 
     <!-- Color Picker -->
     <string name="choose_color">Elegir color</string>

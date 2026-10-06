@@ -95,6 +95,7 @@
     <string name="menu_previous_track">Vorheriger Titel</string>
     <string name="menu_sys_volume_bar">System-Lautstärkeleiste</string>
     <string name="menu_sys_volume_panel">Lautstärkepanel öffnen</string>
+    <string name="menu_volume_mixer">Schwebendes Lautstärkefeld</string>
     
     <!-- Connectivity -->
     <string name="menu_wifi">WLAN umschalten</string>
@@ -104,6 +105,7 @@
     
     <!-- Utilities -->
     <string name="menu_screenshot">Screenshot</string>
+    <string name="menu_partial_screenshot">Teilscreenshot</string>
     <string name="menu_lock_screen">Bildschirm sperren</string>
     <string name="menu_notification">Benachrichtigung</string>
     <string name="menu_quick_settings">Kontrollzentrum</string>
@@ -111,6 +113,15 @@
     <string name="menu_switch_last_app">Zur letzten App wechseln</string>
     <string name="menu_send_clipboard_localsend">Zwischenablage an LocalSend senden</string>
     <string name="toast_no_previous_app">Keine vorherige App vorhanden</string>
+    <string name="menu_phone_assistant">Telefon-Assistent</string>
+    <string name="toast_assistant_not_found">Telefon-Assistent ist nicht installiert und kein Standardassistent festgelegt</string>
+    <string name="toast_app_not_found">App nicht gefunden oder kann nicht gestartet werden</string>
+    <string name="gesture_open_app">App öffnen…</string>
+    <string name="gesture_pick_app_title">Zu öffnende App wählen</string>
+    <string name="gesture_search_apps">Apps suchen…</string>
+    <string name="gesture_app_missing">App nicht installiert (%1$s)</string>
+    <string name="ios_volume_hud_title">Lautstärke-Animation im iOS-Stil</string>
+    <string name="ios_volume_hud_description">Lauter/Leiser zeigt unter der Statusleiste eine animierte Kapsel statt der einfachen Lautstärkeanzeige. Ziehen zum Anpassen, antippen oder nach unten ziehen für alle Regler</string>
 
     <!-- Color Picker -->
     <string name="choose_color">Farbe wählen</string>

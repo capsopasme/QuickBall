@@ -2,6 +2,7 @@ package io.github.chayanforyou.quickball.domain.handlers
 
 import android.accessibilityservice.AccessibilityService
 import android.app.NotificationManager
+import android.content.ActivityNotFoundException
 import android.bluetooth.BluetoothAdapter
 import android.content.Context
 import android.content.Intent
@@ -17,6 +18,8 @@ import android.util.Log
 import android.view.KeyEvent
 import androidx.core.net.toUri
 import io.github.chayanforyou.quickball.core.RecentAppTracker
+import io.github.chayanforyou.quickball.core.VolumeHud
+import io.github.chayanforyou.quickball.domain.AppPreference
 import io.github.chayanforyou.quickball.domain.models.MenuAction
 import io.github.chayanforyou.quickball.domain.models.QuickBallMenuItem
 import io.github.chayanforyou.quickball.R
@@ -30,13 +33,16 @@ import kotlin.math.roundToInt
 class QuickBallActionHandler(
     private val accessibilityService: AccessibilityService,
     private val recentAppTracker: RecentAppTracker? = null,
-    private val performStash: (() -> Unit)? = null
+    private val performStash: (() -> Unit)? = null,
+    private val startPartialScreenshot: (() -> Unit)? = null,
 ) {
 
     companion object {
         private const val TAG = "QuickBallActionHandler"
         private const val BRIGHTNESS_STEP_PERCENT = 10
         private const val VOLUME_STEP_PERCENT = 10
+        private const val ASSISTANT_PACKAGE = "com.capsopasme.assistant"
+        private const val ASSISTANT_ACTION_START = "com.capsopasme.assistant.START"
     }
 
     private val context: Context = accessibilityService.applicationContext
@@ -64,6 +70,8 @@ class QuickBallActionHandler(
 
     private val localSendNotifier: (String) -> Unit = { message -> showToast(message) }
 
+    private val volumeHud = VolumeHud(accessibilityService)
+
     init {
         initTorch()
         LocalSendSender.notifier = localSendNotifier
@@ -79,7 +87,14 @@ class QuickBallActionHandler(
         }
     }
 
+    /** Removes the volume HUD and any toast at once, e.g. right before a screenshot. */
+    fun dismissTransientUi() {
+        volumeHud.dismiss(immediate = true)
+        ToastUtil.hideNow()
+    }
+
     fun cleanup() {
+        volumeHud.destroy()
         if (LocalSendSender.notifier === localSendNotifier) LocalSendSender.notifier = null
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && torchCallback != null) {
             try {
@@ -112,6 +127,8 @@ class QuickBallActionHandler(
     }
 
     private fun showToast(message: String, performHaptic: Boolean = false) {
+        // Both sit at the top of the screen; the newer message wins.
+        volumeHud.dismiss(immediate = true)
         if (performHaptic) {
             runDelayed { context.performHapticFeedback() }
         }
@@ -146,6 +163,7 @@ class QuickBallActionHandler(
             MenuAction.BRIGHTNESS_DOWN -> changeBrightness(increase = false)
             MenuAction.LOCK_SCREEN -> performLockScreenAction()
             MenuAction.SCREENSHOT -> performScreenshotAction()
+            MenuAction.PARTIAL_SCREENSHOT -> startPartialScreenshot?.invoke()
             MenuAction.WIFI_TOGGLE -> toggleWifi()
             MenuAction.BLUETOOTH_TOGGLE -> toggleBluetooth()
             MenuAction.MOBILE_DATA_TOGGLE -> toggleMobileData()
@@ -156,6 +174,7 @@ class QuickBallActionHandler(
             MenuAction.MEDIA_PREVIOUS -> mediaPrevious()
             MenuAction.VOLUME_BAR -> showVolume()
             MenuAction.VOLUME_PANEL -> openVolumePanel()
+            MenuAction.VOLUME_MIXER -> volumeHud.showPanel()
             MenuAction.TORCH_TOGGLE -> toggleTorch()
             MenuAction.AUTO_ROTATE_TOGGLE -> toggleAutoRotate()
             MenuAction.AIRPLANE_MODE_TOGGLE -> toggleAirplaneMode()
@@ -164,6 +183,7 @@ class QuickBallActionHandler(
             MenuAction.RECENT -> performMenuAction()
             MenuAction.SWITCH_LAST_APP -> switchToLastApp()
             MenuAction.SEND_CLIPBOARD_LOCALSEND -> sendClipboardToLocalSend()
+            MenuAction.PHONE_ASSISTANT -> launchPhoneAssistant()
             MenuAction.NOTIFICATION -> performNotificationAction()
             MenuAction.QUICK_SETTINGS -> performQuickSettingsAction()
             MenuAction.POWER_DIALOG -> performPowerDialogAction()
@@ -220,7 +240,16 @@ class QuickBallActionHandler(
             if (target != current) {
                 audioManager.setStreamVolume(stream, target, AudioManager.FLAG_PLAY_SOUND)
             }
-            showVolumeToast()
+            if (AppPreference.getInstance(context).isIosVolumeHud) {
+                volumeHud.showStep(
+                    stream = stream,
+                    previous = current,
+                    up = up,
+                    limitReached = target == current
+                )
+            } else {
+                showVolumeToast()
+            }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to change volume (up=$up)", e)
         }
@@ -328,6 +357,7 @@ class QuickBallActionHandler(
     }
 
     private fun showBrightnessToast(percent: Int) {
+        volumeHud.dismiss(immediate = true)
         ToastUtil.showBrightnessToast(
             context = accessibilityService,
             percent = percent,
@@ -587,7 +617,53 @@ class QuickBallActionHandler(
         }
     }
 
+    // -------------------- Phone Assistant --------------------
+    /**
+     * Opens the assistant sheet of PhoneAssistant (com.capsopasme.assistant) through its public
+     * START action; if that app is missing, falls back to whatever is set as the system's default
+     * digital assistant (ACTION_ASSIST), the same thing the corner swipe opens.
+     */
+    private fun launchPhoneAssistant() {
+        val flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NO_ANIMATION
+        val candidates = listOf(
+            Intent(ASSISTANT_ACTION_START).setPackage(ASSISTANT_PACKAGE),
+            Intent(Intent.ACTION_ASSIST)
+        )
+        for (intent in candidates) {
+            try {
+                accessibilityService.startActivity(intent.addFlags(flags))
+                return
+            } catch (_: ActivityNotFoundException) {
+                // try the next one
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to open assistant via ${intent.action}", e)
+                return
+            }
+        }
+        showToast(context.getString(R.string.toast_assistant_not_found))
+    }
+
     // -------------------- App Launch --------------------
+    /**
+     * Opens an app straight away (gesture / wave bindings): there is no menu to collapse first,
+     * so no delay. RESET_TASK_IF_NEEDED resumes the app's existing task like the launcher does.
+     */
+    fun launchAppNow(packageName: String) {
+        try {
+            val intent = accessibilityService.packageManager.getLaunchIntentForPackage(packageName)
+            if (intent == null) {
+                showToast(context.getString(R.string.toast_app_not_found))
+                return
+            }
+            intent.addFlags(
+                Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
+            )
+            accessibilityService.startActivity(intent)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to launch app: $packageName", e)
+        }
+    }
+
     private fun launchApp(packageName: String?) {
         if (packageName.isNullOrBlank()) {
             Log.w(TAG, "Cannot launch app - package name is null or empty")

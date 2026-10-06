@@ -292,17 +292,17 @@ fun WaveSettingsScreen(
         }
         GestureActionBottomSheet(
             title = stringResource(titleRes),
-            currentActionName = current,
-            onActionSelected = { action ->
+            currentBinding = current,
+            onBindingSelected = { binding ->
                 when (gesture) {
                     WaveGesture.SWIPE_UP -> {
-                        swipeUp = action.name
-                        prefs.waveSwipeUpAction = action.name
+                        swipeUp = binding
+                        prefs.waveSwipeUpAction = binding
                     }
 
                     WaveGesture.SWIPE_DOWN -> {
-                        swipeDown = action.name
-                        prefs.waveSwipeDownAction = action.name
+                        swipeDown = binding
+                        prefs.waveSwipeDownAction = binding
                     }
                 }
             },

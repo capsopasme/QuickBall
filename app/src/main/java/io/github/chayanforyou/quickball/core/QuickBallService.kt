@@ -24,6 +24,7 @@ import android.view.accessibility.AccessibilityEvent
 import android.view.animation.PathInterpolator
 import androidx.core.content.getSystemService
 import io.github.chayanforyou.quickball.domain.AppPreference
+import io.github.chayanforyou.quickball.domain.models.GestureBinding
 import io.github.chayanforyou.quickball.domain.models.MenuAction
 import io.github.chayanforyou.quickball.domain.handlers.QuickBallActionHandler
 import io.github.chayanforyou.quickball.domain.models.QuickBallMenuItem
@@ -86,6 +87,10 @@ class QuickBallService : AccessibilityService() {
     private var waveView: WaveBarView? = null
     private var waveParams: WindowManager.LayoutParams? = null
     private var actionHandler: QuickBallActionHandler? = null
+    private var partialScreenshot: PartialScreenshot? = null
+
+    // True while a partial screenshot hides the overlays (capture + crop UI).
+    private var isHiddenForCapture = false
 
     // Layout Boundaries & Sizing
     private val fabSizePx get() = DensityUtils.dp2px(floatingBallSize)
@@ -223,6 +228,9 @@ class QuickBallService : AccessibilityService() {
             isScreenReceiverRegistered = false
         }
         stashHandler.removeCallbacksAndMessages(null)
+        partialScreenshot?.destroy()
+        partialScreenshot = null
+        isHiddenForCapture = false
         actionHandler?.cleanup()
         actionHandler = null
         ToastUtil.destroy()
@@ -246,10 +254,19 @@ class QuickBallService : AccessibilityService() {
             yFraction = prefs.landscapeYFraction
         )
 
-        actionHandler = QuickBallActionHandler(this, recentAppTracker) {
-            startCollapsingMenu()
-            stashFab()
-        }
+        val screenshot = PartialScreenshot(this, captureHost)
+        partialScreenshot = screenshot
+        actionHandler = QuickBallActionHandler(
+            accessibilityService = this,
+            recentAppTracker = recentAppTracker,
+            performStash = {
+                startCollapsingMenu()
+                stashFab()
+            },
+            // Posted: the menu window is removed for the capture and must not go away
+            // inside its own click dispatch.
+            startPartialScreenshot = { stashHandler.post { screenshot.start() } },
+        )
 
         createFabWindow()
     }
@@ -389,13 +406,23 @@ class QuickBallService : AccessibilityService() {
         override fun onSwipeDown() = executeGestureAction(prefs.swipeDownAction)
     }
 
-    private fun executeGestureAction(actionName: String) {
+    private fun executeGestureAction(binding: String) {
         if (!prefs.isGestureEnabled) return
+        if (executeBinding(binding)) resetInactivityTimer()
+    }
+
+    /** Runs a gesture binding (an action, or "open app"); returns false if it was invalid. */
+    private fun executeBinding(binding: String): Boolean {
+        val handler = actionHandler ?: return false
+        GestureBinding.appPackage(binding)?.let { pkg ->
+            performHapticFeedback()
+            handler.launchAppNow(pkg)
+            return true
+        }
+        val action = GestureBinding.action(binding) ?: return false
         performHapticFeedback()
-        val action = MenuAction.fromName(actionName) ?: return
-        val menuItem = QuickBallMenuItem(action = action)
-        actionHandler?.onMenuAction(menuItem)
-        resetInactivityTimer()
+        handler.onMenuAction(QuickBallMenuItem(action = action))
+        return true
     }
 
     /* -------------------- FAB Window & Gestures -------------------- */
@@ -482,6 +509,7 @@ class QuickBallService : AccessibilityService() {
             }
         }
 
+        if (isHiddenForCapture) fabView?.visibility = View.INVISIBLE
         try {
             wm.addView(fabView, fabParams)
         } catch (e: Exception) {
@@ -694,6 +722,7 @@ class QuickBallService : AccessibilityService() {
             y = targetY
         }
 
+        if (isHiddenForCapture) pillView?.visibility = View.INVISIBLE
         try {
             wm.addView(pillView, pillParams)
         } catch (e: Exception) {
@@ -740,6 +769,7 @@ class QuickBallService : AccessibilityService() {
         }
         val params = createSystemWindowParams(width = 1, height = 1)
         applyWaveLayout(view, params)
+        if (isHiddenForCapture) view.visibility = View.INVISIBLE
 
         try {
             wm.addView(view, params)
@@ -828,15 +858,14 @@ class QuickBallService : AccessibilityService() {
         waveParams = null
     }
 
-    private fun executeWaveAction(actionName: String) {
-        val action = MenuAction.fromName(actionName) ?: return
-        performHapticFeedback()
-        actionHandler?.onMenuAction(QuickBallMenuItem(action = action))
+    private fun executeWaveAction(binding: String) {
+        executeBinding(binding)
     }
 
     /* -------------------- Menu Window Management -------------------- */
 
     private fun expandMenu() {
+        if (isHiddenForCapture) return
         val wm = windowManager ?: return
 
         isExpanded = true
@@ -941,6 +970,33 @@ class QuickBallService : AccessibilityService() {
         return prefs.selectedMenuItems
     }
 
+    /* -------------------- Partial Screenshot -------------------- */
+
+    private val captureHost = object : PartialScreenshot.Host {
+        override fun hideOverlaysForCapture() {
+            isHiddenForCapture = true
+            stopInactivityTimer()
+            removeMenuWindow()
+            actionHandler?.dismissTransientUi()
+            applyCaptureVisibility()
+        }
+
+        override fun restoreOverlaysAfterCapture() {
+            if (!isHiddenForCapture) return
+            isHiddenForCapture = false
+            applyCaptureVisibility()
+            resetInactivityTimer()
+        }
+    }
+
+    /** An INVISIBLE root view makes its window invisible, so it drops out of the capture. */
+    private fun applyCaptureVisibility() {
+        val visibility = if (isHiddenForCapture) View.INVISIBLE else View.VISIBLE
+        fabView?.visibility = visibility
+        pillView?.visibility = visibility
+        waveView?.visibility = visibility
+    }
+
     /* -------------------- Timers & Helpers -------------------- */
 
     private fun onInactivityTimeout() {
@@ -951,7 +1007,7 @@ class QuickBallService : AccessibilityService() {
 
     private fun resetInactivityTimer() {
         stashHandler.removeCallbacks(stashRunnable)
-        if (!isExpanded && !isStashed) {
+        if (!isExpanded && !isStashed && !isHiddenForCapture) {
             stashHandler.postDelayed(stashRunnable, STASH_DELAY_MS)
         }
     }

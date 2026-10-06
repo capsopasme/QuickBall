@@ -58,6 +58,7 @@ class AppPreference private constructor(context: Context) {
         private const val KEY_WAVE_COLOR = "wave_color"
         private const val KEY_WAVE_SWIPE_UP = "wave_swipe_up"
         private const val KEY_WAVE_SWIPE_DOWN = "wave_swipe_down"
+        private const val KEY_IOS_VOLUME_HUD = "ios_volume_hud"
         private const val KEY_LOCALSEND_HOST = "localsend_host"
         private const val KEY_LOCALSEND_PORT = "localsend_port"
         private const val KEY_LOCALSEND_HTTPS = "localsend_https"
@@ -169,6 +170,11 @@ class AppPreference private constructor(context: Context) {
     var hapticIntensity: String
         get() = prefs.getString(KEY_HAPTIC_INTENSITY, AppDefaults.HAPTIC_INTENSITY) ?: AppDefaults.HAPTIC_INTENSITY
         set(value) = prefs.edit { putString(KEY_HAPTIC_INTENSITY, value) }
+
+    /** iOS-style animated volume capsule instead of the plain volume toast. */
+    var isIosVolumeHud: Boolean
+        get() = prefs.getBoolean(KEY_IOS_VOLUME_HUD, AppDefaults.IOS_VOLUME_HUD)
+        set(value) = prefs.edit { putBoolean(KEY_IOS_VOLUME_HUD, value) }
 
     // -------------------- Wave edge bar --------------------
     var isWaveEnabled: Boolean

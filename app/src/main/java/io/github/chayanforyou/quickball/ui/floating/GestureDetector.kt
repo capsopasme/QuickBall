@@ -28,6 +28,12 @@ interface GestureListener {
  * Recognizes single tap, long press, and vertical swipe gestures. There are no multi-tap
  * gestures, so a single tap fires on ACTION_UP with no waiting window, and nothing is left
  * scheduled on the main looper after a tap.
+ *
+ * A tap only counts when the finger stayed within the touch slop. The edge handle sits on top of
+ * the system back-gesture zone: when SystemUI claims a swipe it cancels our stream, but a swipe
+ * it does not claim (too short or slow to commit, or started just inside our touch area but
+ * outside the system's edge width) still ends with ACTION_UP here. Counting that as a tap made a
+ * back swipe occasionally expand the ball.
  */
 class GestureDetector(
     context: Context,
@@ -41,6 +47,7 @@ class GestureDetector(
 
     private var startX = 0f
     private var startY = 0f
+    private var movedBeyondSlop = false
     private var isLongPressPending = false
     private var isSwipeTriggered = false
     private var isLongPressTriggered = false
@@ -52,37 +59,21 @@ class GestureDetector(
     }
 
     fun onTouchEvent(event: MotionEvent): Boolean {
-        if (!isGestureEnabled()) {
-            return when (event.actionMasked) {
-                MotionEvent.ACTION_DOWN -> {
-                    listener?.onTouchDown()
-                    true
-                }
-
-                MotionEvent.ACTION_UP -> {
-                    listener?.onSingleTap()
-                    true
-                }
-
-                MotionEvent.ACTION_CANCEL -> {
-                    listener?.onTouchCancel()
-                    true
-                }
-
-                else -> false
-            }
-        }
+        val gesturesOn = isGestureEnabled()
 
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
                 listener?.onTouchDown()
                 startX = event.rawX
                 startY = event.rawY
+                movedBeyondSlop = false
                 isSwipeTriggered = false
                 isLongPressTriggered = false
                 cancelLongPress()
-                handler.postDelayed(longPressRunnable, longPressTimeoutMs)
-                isLongPressPending = true
+                if (gesturesOn) {
+                    handler.postDelayed(longPressRunnable, longPressTimeoutMs)
+                    isLongPressPending = true
+                }
                 return true
             }
 
@@ -92,12 +83,13 @@ class GestureDetector(
                 val dx = event.rawX - startX
                 val dy = event.rawY - startY
 
-                if (isLongPressPending && hypot(dx, dy) > touchSlop) {
+                if (!movedBeyondSlop && hypot(dx, dy) > touchSlop) {
+                    movedBeyondSlop = true
                     cancelLongPress()
                 }
 
                 // Check if vertical swipe is predominant and passes threshold
-                if (abs(dy) > swipeThreshold && abs(dy) > abs(dx) * 2f) {
+                if (gesturesOn && abs(dy) > swipeThreshold && abs(dy) > abs(dx) * 2f) {
                     isSwipeTriggered = true
                     cancelLongPress()
 
@@ -112,13 +104,17 @@ class GestureDetector(
 
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 cancelLongPress()
-                if (event.actionMasked == MotionEvent.ACTION_CANCEL) {
+                val cancelled = event.actionMasked == MotionEvent.ACTION_CANCEL ||
+                        (event.flags and MotionEvent.FLAG_CANCELED) != 0
+                if (cancelled) {
                     listener?.onTouchCancel()
-                } else if (!isSwipeTriggered && !isLongPressTriggered &&
-                    event.eventTime - event.downTime < longPressTimeoutMs
+                } else if (!isSwipeTriggered && !isLongPressTriggered && !movedBeyondSlop &&
+                    hypot(event.rawX - startX, event.rawY - startY) <= touchSlop &&
+                    (!gesturesOn || event.eventTime - event.downTime < longPressTimeoutMs)
                 ) {
                     listener?.onSingleTap()
                 }
+                movedBeyondSlop = false
                 isSwipeTriggered = false
                 isLongPressTriggered = false
                 return true
