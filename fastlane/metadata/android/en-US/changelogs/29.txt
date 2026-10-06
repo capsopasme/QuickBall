@@ -1,0 +1,6 @@
+- Volume panel: no more sideways jump after it collapses (tap outside, swipe up)
+- Volume HUD dismissed on rotation and screen off; taps beside it close it
+- Switched-off ball no longer comes back when returning to the settings
+- Shortcut menu survives unknown entries instead of being reset
+- Faster, lighter app lists; translated action toasts; follows the system language
+- LocalSend certificate valid past 2049
